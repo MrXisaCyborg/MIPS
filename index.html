@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIPS Instruction Decoder Simulator (32-bit)</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Phosphor Icons for the info symbol -->
+    <script src="https://unpkg.com/@phosphor-icons/web@2.1.1/dist/umd/index_with_styles.js"></script>
+    <!-- Use Inter font -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .code-input::placeholder {
+            color: #4b5563; /* Placeholder color for dark mode */
+        }
+        /* Custom styles for the info tooltip */
+        #infoTooltip {
+            position: absolute;
+            z-index: 100;
+            max-width: 300px;
+            pointer-events: none; /* Allows clicks to pass through to the document, necessary for auto-hide */
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-extrabold text-indigo-400 tracking-tight">MIPS Instruction Decoder</h1>
+            <p class="text-gray-400 mt-2">32-bit Instruction Set Architecture (ISA) Simulator</p>
+        </header>
+
+        <!-- Input Section -->
+        <section class="bg-gray-800 p-6 rounded-xl shadow-lg mb-8">
+            <label for="instructionInput" class="block text-sm font-medium text-gray-300 mb-2">Machine Code Input (32-bit Hex or Binary):</label>
+            <div class="flex flex-col sm:flex-row gap-4">
+                <input type="text" id="instructionInput" placeholder="e.g., 0x02324021 (ADDU $t0, $s1, $s2)"
+                       class="code-input w-full sm:w-3/4 px-4 py-3 bg-gray-900 border border-indigo-500 text-lg rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 transition"
+                       maxlength="34">
+                <button onclick="decodeInstruction()"
+                        class="w-full sm:w-1/4 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-md transition duration-200">
+                    Decode
+                </button>
+            </div>
+            <p id="errorMsg" class="text-red-400 mt-2 h-5"></p>
+        </section>
+
+        <!-- Output Section -->
+        <section class="bg-gray-800 p-6 rounded-xl shadow-lg">
+            <h2 class="text-2xl font-semibold text-indigo-400 mb-4">Decode Results</h2>
+
+            <!-- Decoded Assembly Instruction -->
+            <div class="bg-gray-700 p-4 rounded-lg mb-6">
+                <p class="text-sm font-medium text-gray-300">Assembly Instruction:</p>
+                <code id="assemblyOutput" class="text-3xl font-mono text-green-400 break-all min-h-8 block"></code>
+            </div>
+
+            <!-- Instruction Breakdown Table -->
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-700">
+                    <thead class="bg-gray-700">
+                        <tr>
+                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Field</th>
+                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Bits (Start:End)</th>
+                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Binary Value</th>
+                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Decimal Value</th>
+                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Meaning</th>
+                        </tr>
+                    </thead>
+                    <tbody id="breakdownBody" class="divide-y divide-gray-700 text-sm">
+                        <!-- Breakdown rows will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Visual 32-bit Representation -->
+            <h3 class="text-xl font-medium text-gray-300 mt-8 mb-4">32-bit Visual Breakdown</h3>
+            <div id="visualBreakdown" class="font-mono text-sm overflow-x-auto pb-2">
+                <!-- Visual breakdown will be inserted here -->
+            </div>
+        </section>
+    </div>
+    
+    <!-- Info Tooltip Container (Hidden by default) -->
+    <div id="infoTooltip" class="hidden bg-gray-900 border border-indigo-500 rounded-lg shadow-2xl p-4 text-gray-200 text-sm">
+        <!-- Content inserted by JavaScript -->
+    </div>
+
+    <script>
+        // MIPS Register Conventions for display
+        const REGISTER_NAMES = [
+            '$zero', '$at', '$v0', '$v1', '$a0', '$a1', '$a2', '$a3',
+            '$t0', '$t1', '$t2', '$t3', '$t4', '$t5', '$t6', '$t7',
+            '$s0', '$s1', '$s2', '$s3', '$s4', '$s5', '$s6', '$s7',
+            '$t8', '$t9', '$k0', '$k1', '$gp', '$sp', '$fp', '$ra'
+        ];
+
+        // Global state to hold the current decoded instruction type for tooltips
+        let currentInstructionType = null;
+
+        // Detailed field explanations
+        const FIELD_DESCRIPTIONS = {
+            Opcode: "The primary operation code (bits 31-26). It determines the instruction format (R, I, or J) and the specific operation for I-type and J-type instructions. Always '000000' for R-type.",
+            Rs: "The first Source Register (bits 25-21). For R-Type and I-Type, it generally holds the address of the first operand or the base address for Load/Store operations.",
+            Rt: "The Target Register (bits 20-16). For I-Type, it's often the destination register. For R-Type, it's the second source operand. For Load/Store, it's the register being loaded from or stored to memory.",
+            Rd: "The Destination Register (bits 15-11). Used exclusively in R-type instructions to specify the register where the operation result is stored.",
+            Shamt: "The Shift Amount (bits 10-6). Used in shift instructions (SLL, SRL, SRA) to specify the number of bits to shift the value in the Rt register.",
+            Funct: "The Function Code (bits 5-0). Used only in R-type instructions to determine the specific ALU operation (e.g., ADD, SUB, AND) since the Opcode is always '000000'.",
+            Immediate: "The 16-bit Immediate value (bits 15-0). Used as a constant operand, a memory address offset, or a branch offset. For branches (BEQ/BNE), this signed value represents the number of instructions (words) to skip relative to the instruction following the branch.",
+            Address: "The 26-bit Pseudo-Address (bits 25-0). Used in J-type instructions (J, JAL). This value is shifted left by two bits and concatenated with the high four bits of the PC to form the jump target address.",
+        };
+
+
+        // Simplified MIPS Instruction Map (Opcode -> {Type, Mnemonic} or Opcode -> Funct Map)
+        const INSTRUCTION_MAP = {
+            // R-Type Instructions (Opcode 0x00) use the Funct field
+            '000000': {
+                type: 'R',
+                funct: {
+                    '100000': { mnemonic: 'ADD', format: 'rd, rs, rt' },
+                    '100001': { mnemonic: 'ADDU', format: 'rd, rs, rt' }, // Added ADDU
+                    '100010': { mnemonic: 'SUB', format: 'rd, rs, rt' },
+                    '100100': { mnemonic: 'AND', format: 'rd, rs, rt' },
+                    '100101': { mnemonic: 'OR', format: 'rd, rs, rt' },
+                    '000000': { mnemonic: 'SLL', format: 'rd, rt, sa' }, // Shift Left Logical
+                    '000010': { mnemonic: 'SRL', format: 'rd, rt, sa' }, // Added SRL (Shift Right Logical)
+                    '000011': { mnemonic: 'SRA', format: 'rd, rt, sa' }, // Added SRA (Shift Right Arithmetic)
+                    '001000': { mnemonic: 'JR', format: 'rs' },
+                }
+            },
+            // I-Type Instructions
+            '001000': { type: 'I', mnemonic: 'ADDI', format: 'rt, rs, imm' },
+            '001100': { type: 'I', mnemonic: 'ANDI', format: 'rt, rs, imm' },
+            '001101': { type: 'I', mnemonic: 'ORI', format: 'rt, rs, imm' },
+            '100011': { type: 'I', mnemonic: 'LW', format: 'rt, offset(rs)' },
+            '101011': { type: 'I', mnemonic: 'SW', format: 'rt, offset(rs)' },
+            '000100': { type: 'I', mnemonic: 'BEQ', format: 'rs, rt, offset' },
+            '000101': { type: 'I', mnemonic: 'BNE', format: 'rs, rt, offset' },
+            '001111': { type: 'I', mnemonic: 'LUI', format: 'rt, imm' }, // lui $rt, imm
+            // J-Type Instructions
+            '000010': { type: 'J', mnemonic: 'J', format: 'target' },
+            '000011': { type: 'J', mnemonic: 'JAL', format: 'target' },
+        };
+
+        const ERROR_MSG_DURATION = 3000;
+        let errorTimer;
+
+        /**
+         * Cleans and normalizes the input to a 32-bit binary string.
+         * @param {string} input - User input (Hex or Binary).
+         * @returns {string | null} 32-bit binary string or null on error.
+         */
+        function normalizeInput(input) {
+            // Remove '0x' or '0b' prefixes and any spaces/non-hex characters
+            const cleanInput = input.trim().toUpperCase().replace(/^(0X|0B)/, '').replace(/[^0-9A-F]/g, '');
+            let binaryString = '';
+
+            if (cleanInput.length === 8) {
+                // Assume 8-digit Hex input (e.g., 02328820)
+                try {
+                    const decimalValue = parseInt(cleanInput, 16);
+                    if (isNaN(decimalValue)) throw new Error("Invalid hex value.");
+                    
+                    // Convert to 32-bit binary string, zero-padding on the left
+                    binaryString = decimalValue.toString(2).padStart(32, '0');
+                } catch (e) {
+                    return null;
+                }
+            } else if (cleanInput.length === 32) {
+                // Assume 32-bit Binary input (e.g., 00000010001100101000100000100000)
+                if (!/^[01]{32}$/.test(cleanInput)) return null;
+                binaryString = cleanInput;
+            } else {
+                return null;
+            }
+
+            return binaryString;
+        }
+
+        /**
+         * Displays a temporary error message.
+         * @param {string} message - The error message.
+         */
+        function displayError(message) {
+            clearTimeout(errorTimer);
+            const errorElement = document.getElementById('errorMsg');
+            errorElement.textContent = message;
+            errorElement.classList.remove('hidden');
+
+            // Hide the error after a few seconds
+            errorTimer = setTimeout(() => {
+                errorElement.textContent = '';
+                errorElement.classList.add('hidden');
+            }, ERROR_MSG_DURATION);
+        }
+
+        /**
+         * Decodes the MIPS instruction and updates the UI.
+         */
+        function decodeInstruction() {
+            const inputElement = document.getElementById('instructionInput');
+            const binaryInstruction = normalizeInput(inputElement.value);
+            const errorElement = document.getElementById('errorMsg');
+            errorElement.textContent = ''; // Clear previous error
+
+            // Clear previous results
+            document.getElementById('assemblyOutput').textContent = '';
+            document.getElementById('breakdownBody').innerHTML = '';
+            document.getElementById('visualBreakdown').innerHTML = '';
+            hideInfo(); // Hide info tooltip if active
+
+            if (!binaryInstruction) {
+                displayError("Invalid input. Please enter a 32-bit Hex (8 digits) or Binary (32 bits) instruction.");
+                return;
+            }
+
+            // 1. Initial Breakdown
+            const Op = binaryInstruction.substring(0, 6);
+            const OpDec = parseInt(Op, 2);
+            const instructionTypeInfo = INSTRUCTION_MAP[Op];
+
+            if (!instructionTypeInfo) {
+                displayError(`Unknown Opcode: ${Op} (Dec: ${OpDec}). Cannot decode instruction.`);
+                return;
+            }
+
+            const instructionType = instructionTypeInfo.type;
+            currentInstructionType = instructionType; // Set global state
+            let mnemonic = 'UNKNOWN';
+            let assemblyFormat = 'N/A';
+            let breakdownFields = [];
+
+            // 2. Determine Instruction Format and Fields
+            if (instructionType === 'R') {
+                // R-Type: Op(6) | Rs(5) | Rt(5) | Rd(5) | Shamt(5) | Funct(6)
+                const Funct = binaryInstruction.substring(26, 32);
+                const Rs = binaryInstruction.substring(6, 11);
+                const Rt = binaryInstruction.substring(11, 16);
+                const Rd = binaryInstruction.substring(16, 21);
+                const Shamt = binaryInstruction.substring(21, 26);
+
+                const functInfo = instructionTypeInfo.funct[Funct];
+                
+                if (!functInfo) {
+                    displayError(`Unknown R-Type Function Code: ${Funct}. Opcode 0x00.`);
+                    return;
+                }
+
+                mnemonic = functInfo.mnemonic;
+                assemblyFormat = functInfo.format;
+
+                breakdownFields = [
+                    { name: 'Opcode', key: 'Opcode', bits: '31:26', bin: Op, dec: OpDec, meaning: 'R-Type (0x00)' },
+                    { name: 'Rs (Source 1)', key: 'Rs', bits: '25:21', bin: Rs, dec: parseInt(Rs, 2), meaning: REGISTER_NAMES[parseInt(Rs, 2)] },
+                    { name: 'Rt (Source 2)', key: 'Rt', bits: '20:16', bin: Rt, dec: parseInt(Rt, 2), meaning: REGISTER_NAMES[parseInt(Rt, 2)] },
+                    { name: 'Rd (Destination)', key: 'Rd', bits: '15:11', bin: Rd, dec: parseInt(Rd, 2), meaning: REGISTER_NAMES[parseInt(Rd, 2)] },
+                    { name: 'Shamt (Shift Amt)', key: 'Shamt', bits: '10:6', bin: Shamt, dec: parseInt(Shamt, 2), meaning: 'Shift Amount' },
+                    { name: 'Funct (Function)', key: 'Funct', bits: '5:0', bin: Funct, dec: parseInt(Funct, 2), meaning: mnemonic + ' operation' },
+                ];
+
+                // 3. Generate Assembly String for R-Type
+                let assembly = mnemonic;
+                const rsName = REGISTER_NAMES[parseInt(Rs, 2)];
+                const rtName = REGISTER_NAMES[parseInt(Rt, 2)];
+                const rdName = REGISTER_NAMES[parseInt(Rd, 2)];
+                const shamtDec = parseInt(Shamt, 2);
+
+                if (mnemonic === 'JR') {
+                    assembly += ` ${rsName}`;
+                } else if (['SLL', 'SRL', 'SRA'].includes(mnemonic)) {
+                    // SLL/SRL/SRA format: rd, rt, sa
+                    assembly += ` ${rdName}, ${rtName}, ${shamtDec}`;
+                } else { // ADD, ADDU, SUB, AND, OR, etc.
+                    // Standard R-type format: rd, rs, rt
+                    assembly += ` ${rdName}, ${rsName}, ${rtName}`;
+                }
+                document.getElementById('assemblyOutput').textContent = assembly;
+
+            } else if (instructionType === 'I') {
+                // I-Type: Op(6) | Rs(5) | Rt(5) | Immediate(16)
+                const Rs = binaryInstruction.substring(6, 11);
+                const Rt = binaryInstruction.substring(11, 16);
+                const ImmediateBin = binaryInstruction.substring(16, 32);
+
+                mnemonic = instructionTypeInfo.mnemonic;
+                assemblyFormat = instructionTypeInfo.format;
+
+                // Sign-extend the 16-bit immediate value
+                const ImmediateDec = signExtend(ImmediateBin);
+                const ImmediateHex = '0x' + parseInt(ImmediateBin, 2).toString(16).toUpperCase().padStart(4, '0');
+
+                breakdownFields = [
+                    { name: 'Opcode', key: 'Opcode', bits: '31:26', bin: Op, dec: OpDec, meaning: mnemonic },
+                    { name: 'Rs (Source)', key: 'Rs', bits: '25:21', bin: Rs, dec: parseInt(Rs, 2), meaning: REGISTER_NAMES[parseInt(Rs, 2)] },
+                    { name: 'Rt (Target/Dest)', key: 'Rt', bits: '20:16', bin: Rt, dec: parseInt(Rt, 2), meaning: REGISTER_NAMES[parseInt(Rt, 2)] },
+                    { name: 'Immediate', key: 'Immediate', bits: '15:0', bin: ImmediateBin, dec: ImmediateDec, meaning: `Constant or Address Offset (${ImmediateHex})` },
+                ];
+
+                // 3. Generate Assembly String for I-Type
+                let assembly = mnemonic;
+                const rsName = REGISTER_NAMES[parseInt(Rs, 2)];
+                const rtName = REGISTER_NAMES[parseInt(Rt, 2)];
+
+                if (mnemonic === 'LW' || mnemonic === 'SW') {
+                    // LW/SW rt, offset(rs)
+                    assembly += ` ${rtName}, ${ImmediateDec}(${rsName})`;
+                } else if (mnemonic === 'BEQ' || mnemonic === 'BNE') {
+                    // BEQ/BNE rs, rt, offset
+                    assembly += ` ${rsName}, ${rtName}, ${ImmediateDec}`;
+                } else if (mnemonic === 'LUI') {
+                    // LUI rt, imm
+                     assembly += ` ${rtName}, ${ImmediateDec}`;
+                }
+                else { // ADDI, ANDI, ORI, etc.
+                    // Standard I-type: rt, rs, imm
+                    assembly += ` ${rtName}, ${rsName}, ${ImmediateDec}`;
+                }
+                document.getElementById('assemblyOutput').textContent = assembly;
+
+            } else if (instructionType === 'J') {
+                // J-Type: Op(6) | Address(26)
+                const AddressBin = binaryInstruction.substring(6, 32);
+
+                mnemonic = instructionTypeInfo.mnemonic;
+                assemblyFormat = instructionTypeInfo.format;
+
+                // The 26-bit address is shifted left by 2 (multiplied by 4) and combined with PC high bits.
+                // For a simple decoder, we'll just show the shifted address.
+                const AddressDec = parseInt(AddressBin + '00', 2);
+                const AddressHex = '0x' + AddressDec.toString(16).toUpperCase().padStart(8, '0');
+
+                breakdownFields = [
+                    { name: 'Opcode', key: 'Opcode', bits: '31:26', bin: Op, dec: OpDec, meaning: mnemonic },
+                    { name: 'Address', key: 'Address', bits: '25:0', bin: AddressBin, dec: AddressDec, meaning: `Target Address (Shifted, ${AddressHex})` },
+                ];
+
+                // 3. Generate Assembly String for J-Type
+                let assembly = `${mnemonic} ${AddressHex}`;
+                document.getElementById('assemblyOutput').textContent = assembly;
+            }
+
+            // 4. Update Tables and Visuals
+            updateBreakdownTable(breakdownFields);
+            updateVisualBreakdown(binaryInstruction, instructionType);
+        }
+
+        /**
+         * Converts a 16-bit binary string to a 32-bit signed decimal number.
+         * @param {string} binaryString - 16-bit binary string.
+         * @returns {number} The signed decimal value.
+         */
+        function signExtend(binaryString) {
+            if (binaryString.length !== 16) {
+                return parseInt(binaryString, 2); // Should not happen for I-Type
+            }
+
+            const isNegative = binaryString[0] === '1';
+            let value = parseInt(binaryString, 2);
+
+            if (isNegative) {
+                // Perform two's complement manually for 16 bits
+                value = value - (1 << 16);
+            }
+            return value;
+        }
+
+
+        /**
+         * Updates the detailed breakdown table, including info buttons.
+         * @param {Array<Object>} fields - Array of field objects.
+         */
+        function updateBreakdownTable(fields) {
+            const tbody = document.getElementById('breakdownBody');
+            tbody.innerHTML = ''; // Clear existing rows
+
+            fields.forEach(field => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-700 transition duration-150';
+                row.innerHTML = `
+                    <td class="px-3 py-2 whitespace-nowrap font-medium text-indigo-300 flex items-center">
+                        ${field.name} (${field.bin.length} bits)
+                        <span onclick="showInfo(event, '${field.key}')" class="ml-2 text-indigo-400 cursor-pointer hover:text-indigo-300 transition" title="Information">
+                            <i class="ph-fill ph-info-i text-base"></i>
+                        </span>
+                    </td>
+                    <td class="px-3 py-2 whitespace-nowrap text-gray-400">${field.bits}</td>
+                    <td class="px-3 py-2 whitespace-nowrap text-yellow-300 font-mono">${field.bin}</td>
+                    <td class="px-3 py-2 whitespace-nowrap text-gray-300 font-mono">${field.dec}</td>
+                    <td class="px-3 py-2 whitespace-nowrap text-gray-400">${field.meaning}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        /**
+         * Updates the visual 32-bit breakdown with color coding.
+         * @param {string} binaryInstruction - The 32-bit binary string.
+         * @param {string} type - Instruction type (R, I, or J).
+         */
+        function updateVisualBreakdown(binaryInstruction, type) {
+            const visualDiv = document.getElementById('visualBreakdown');
+            visualDiv.innerHTML = '';
+            
+            const fieldClasses = {
+                Op: "text-red-400 font-bold",
+                Rs: "text-green-400 font-bold",
+                Rt: "text-blue-400 font-bold",
+                Rd: "text-purple-400 font-bold",
+                Shamt: "text-pink-400 font-bold",
+                Funct: "text-yellow-400 font-bold",
+                Immediate: "text-cyan-400 font-bold",
+                Address: "text-lime-400 font-bold"
+            };
+
+            const bits = binaryInstruction.split('');
+            let spans = [];
+            let start = 0;
+            let currentField = '';
+            let end = 0;
+
+            if (type === 'R') {
+                // R-Type: Op(6) | Rs(5) | Rt(5) | Rd(5) | Shamt(5) | Funct(6)
+                const structure = [
+                    { name: 'Op', length: 6 }, { name: 'Rs', length: 5 }, { name: 'Rt', length: 5 },
+                    { name: 'Rd', length: 5 }, { name: 'Shamt', length: 5 }, { name: 'Funct', length: 6 }
+                ];
+                structure.forEach(field => {
+                    end = start + field.length;
+                    const segment = bits.slice(start, end).join('');
+                    spans.push(`<span class="${fieldClasses[field.name]}">${segment}</span>`);
+                    start = end;
+                });
+            } else if (type === 'I') {
+                // I-Type: Op(6) | Rs(5) | Rt(5) | Immediate(16)
+                const structure = [
+                    { name: 'Op', length: 6 }, { name: 'Rs', length: 5 }, { name: 'Rt', length: 5 },
+                    { name: 'Immediate', length: 16 }
+                ];
+                structure.forEach(field => {
+                    end = start + field.length;
+                    const segment = bits.slice(start, end).join('');
+                    spans.push(`<span class="${fieldClasses[field.name]}">${segment}</span>`);
+                    start = end;
+                });
+            } else if (type === 'J') {
+                // J-Type: Op(6) | Address(26)
+                const structure = [
+                    { name: 'Op', length: 6 }, { name: 'Address', length: 26 }
+                ];
+                structure.forEach(field => {
+                    end = start + field.length;
+                    const segment = bits.slice(start, end).join('');
+                    spans.push(`<span class="${fieldClasses[field.name]}">${segment}</span>`);
+                    start = end;
+                });
+            }
+
+            // Display the bits and the field legend
+            visualDiv.innerHTML = `
+                <div class="text-lg tracking-widest leading-loose bg-gray-900 p-4 rounded-lg shadow-inner">
+                    ${spans.join('<span class="text-gray-600">|</span>')}
+                </div>
+                <div class="mt-4 text-xs flex flex-wrap gap-x-4 gap-y-2">
+                    <span class="${fieldClasses.Op} mr-2">OPCODE</span>
+                    <span class="${fieldClasses.Rs} mr-2">RS (Source)</span>
+                    <span class="${fieldClasses.Rt} mr-2">RT (Target/Source)</span>
+                    ${type === 'R' ? `<span class="${fieldClasses.Rd} mr-2">RD (Destination)</span>` : ''}
+                    ${type === 'R' ? `<span class="${fieldClasses.Shamt} mr-2">SHAMT</span>` : ''}
+                    ${type === 'R' ? `<span class="${fieldClasses.Funct} mr-2">FUNCT</span>` : ''}
+                    ${type === 'I' ? `<span class="${fieldClasses.Immediate} mr-2">IMMEDIATE (16-bit)</span>` : ''}
+                    ${type === 'J' ? `<span class="${fieldClasses.Address} mr-2">TARGET ADDRESS (26-bit)</span>` : ''}
+                </div>
+            `;
+        }
+
+        /**
+         * Displays the info tooltip.
+         * @param {Event} event - The click event.
+         * @param {string} fieldKey - The key for the field description.
+         */
+        function showInfo(event, fieldKey) {
+            const tooltip = document.getElementById('infoTooltip');
+            const description = FIELD_DESCRIPTIONS[fieldKey] || `No detailed description available for ${fieldKey}.`;
+
+            // Update tooltip content
+            tooltip.innerHTML = `<p class="font-bold text-indigo-300 mb-2">${fieldKey} Field (${currentInstructionType}-Type)</p><p>${description}</p>`;
+            tooltip.classList.remove('hidden');
+
+            // Positioning the tooltip
+            const buttonRect = event.currentTarget.getBoundingClientRect();
+            const bodyRect = document.body.getBoundingClientRect();
+
+            // Set a temporary max-width to calculate dynamic size
+            tooltip.style.maxWidth = '300px'; 
+            
+            // Calculate position
+            let topPos = buttonRect.top + window.scrollY;
+            let leftPos = buttonRect.right + 10;
+            
+            // Adjust left if it goes off the right edge
+            if (buttonRect.right + tooltip.offsetWidth + 10 > bodyRect.right) {
+                leftPos = buttonRect.left - tooltip.offsetWidth - 10;
+            }
+            
+            // Ensure we don't go off the top of the screen
+            if (topPos < window.scrollY) {
+                topPos = window.scrollY + 10;
+            }
+
+            tooltip.style.left = `${leftPos}px`;
+            tooltip.style.top = `${topPos}px`;
+            
+            // Add global listener to hide on next click outside the tooltip
+            // Note: We need to remove the previous listener if it exists before adding a new one.
+            document.removeEventListener('click', hideInfo);
+            setTimeout(() => {
+                 document.addEventListener('click', hideInfo, { once: true });
+            }, 10);
+            
+            // Stop propagation to prevent the click from immediately triggering the hideInfo listener added to the document
+            event.stopPropagation(); 
+        }
+
+        /**
+         * Hides the info tooltip.
+         */
+        function hideInfo() {
+            document.getElementById('infoTooltip').classList.add('hidden');
+        }
+
+        // Example instruction for initial load (ADDU $t0, $s1, $s2 -> 0x02324021)
+        window.onload = function() {
+            document.getElementById('instructionInput').value = '0x02324021'; 
+            decodeInstruction();
+        };
+
+    </script>
+</body>
+</html>
