@@ -3,541 +3,1238 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MIPS Instruction Decoder Simulator (32-bit)</title>
+    <title>COA Simulators - Professional Suite</title>
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Load Phosphor Icons for the info symbol -->
+    <!-- Load Phosphor Icons for professional symbols -->
     <script src="https://unpkg.com/@phosphor-icons/web@2.1.1/dist/umd/index_with_styles.js"></script>
-    <!-- Use Inter font -->
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
         body {
             font-family: 'Inter', sans-serif;
+            background-color: #0f172a; /* Slate-900 */
         }
-        .code-input::placeholder {
-            color: #4b5563; /* Placeholder color for dark mode */
+        .simulator-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-        /* Custom styles for the info tooltip */
-        #infoTooltip {
-            position: absolute;
-            z-index: 100;
-            max-width: 300px;
-            pointer-events: none; /* Allows clicks to pass through to the document, necessary for auto-hide */
+        .simulator-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(49, 46, 129, 0.5), 0 4px 6px -2px rgba(49, 46, 129, 0.5); /* Indigo glow */
+        }
+        /* Style for visual breakdown */
+        .visual-bits span {
+            display: inline-block;
+            padding: 2px 0;
+            margin-right: 2px;
+            font-size: 0.8rem;
+        }
+        .pipeline-stage {
+            min-width: 5rem;
+            text-align: center;
         }
     </style>
 </head>
-<body class="bg-gray-900 text-gray-100 min-h-screen p-4 md:p-8">
+<body class="text-gray-100 min-h-screen">
 
-    <div class="max-w-4xl mx-auto">
-        <header class="text-center mb-8">
-            <h1 class="text-4xl font-extrabold text-indigo-400 tracking-tight">MIPS Instruction Decoder</h1>
-            <p class="text-gray-400 mt-2">32-bit Instruction Set Architecture (ISA) Simulator</p>
+    <div class="max-w-7xl mx-auto p-4 md:p-8">
+        <!-- Header -->
+        <header class="text-center mb-8 bg-gray-800 p-6 rounded-xl shadow-2xl">
+            <h1 class="text-5xl font-extrabold text-indigo-400 tracking-wider">COA Simulators</h1>
+            <p class="text-gray-400 mt-2 text-xl">Advanced Tools for Computer Organization & Architecture</p>
+            <!-- Navigation/Back Button -->
+            <button id="backButton" onclick="app.renderView('home')" class="hidden mt-4 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg font-semibold transition duration-200">
+                <i class="ph-fill ph-arrow-left mr-2"></i> Back to Hub
+            </button>
         </header>
 
-        <!-- Input Section -->
-        <section class="bg-gray-800 p-6 rounded-xl shadow-lg mb-8">
-            <label for="instructionInput" class="block text-sm font-medium text-gray-300 mb-2">Machine Code Input (32-bit Hex or Binary):</label>
-            <div class="flex flex-col sm:flex-row gap-4">
-                <input type="text" id="instructionInput" placeholder="e.g., 0x02324021 (ADDU $t0, $s1, $s2)"
-                       class="code-input w-full sm:w-3/4 px-4 py-3 bg-gray-900 border border-indigo-500 text-lg rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 transition"
-                       maxlength="34">
-                <button onclick="decodeInstruction()"
-                        class="w-full sm:w-1/4 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-md transition duration-200">
-                    Decode
-                </button>
-            </div>
-            <p id="errorMsg" class="text-red-400 mt-2 h-5"></p>
-        </section>
-
-        <!-- Output Section -->
-        <section class="bg-gray-800 p-6 rounded-xl shadow-lg">
-            <h2 class="text-2xl font-semibold text-indigo-400 mb-4">Decode Results</h2>
-
-            <!-- Decoded Assembly Instruction -->
-            <div class="bg-gray-700 p-4 rounded-lg mb-6">
-                <p class="text-sm font-medium text-gray-300">Assembly Instruction:</p>
-                <code id="assemblyOutput" class="text-3xl font-mono text-green-400 break-all min-h-8 block"></code>
-            </div>
-
-            <!-- Instruction Breakdown Table -->
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-700">
-                    <thead class="bg-gray-700">
-                        <tr>
-                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Field</th>
-                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Bits (Start:End)</th>
-                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Binary Value</th>
-                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Decimal Value</th>
-                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Meaning</th>
-                        </tr>
-                    </thead>
-                    <tbody id="breakdownBody" class="divide-y divide-gray-700 text-sm">
-                        <!-- Breakdown rows will be inserted here -->
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Visual 32-bit Representation -->
-            <h3 class="text-xl font-medium text-gray-300 mt-8 mb-4">32-bit Visual Breakdown</h3>
-            <div id="visualBreakdown" class="font-mono text-sm overflow-x-auto pb-2">
-                <!-- Visual breakdown will be inserted here -->
-            </div>
-        </section>
+        <!-- Main Content Area - Simulators will render here -->
+        <main id="app-content" class="min-h-[60vh]">
+            <!-- Content loaded by JavaScript -->
+        </main>
     </div>
     
-    <!-- Info Tooltip Container (Hidden by default) -->
-    <div id="infoTooltip" class="hidden bg-gray-900 border border-indigo-500 rounded-lg shadow-2xl p-4 text-gray-200 text-sm">
+    <!-- Info Tooltip Container (Used by all Simulators) -->
+    <div id="infoTooltip" class="hidden fixed bg-gray-700 border border-indigo-500 rounded-lg shadow-2xl p-3 text-gray-200 text-sm max-w-xs z-50 pointer-events-none">
         <!-- Content inserted by JavaScript -->
     </div>
 
     <script>
-        // MIPS Register Conventions for display
-        const REGISTER_NAMES = [
-            '$zero', '$at', '$v0', '$v1', '$a0', '$a1', '$a2', '$a3',
-            '$t0', '$t1', '$t2', '$t3', '$t4', '$t5', '$t6', '$t7',
-            '$s0', '$s1', '$s2', '$s3', '$s4', '$s5', '$s6', '$s7',
-            '$t8', '$t9', '$k0', '$k1', '$gp', '$sp', '$fp', '$ra'
-        ];
+        // --- Core Application State and Utilities ---
+        const app = {
+            currentView: 'home',
+            
+            // Register names for MIPS Decoder
+            REGISTER_NAMES: [
+                '$zero', '$at', '$v0', '$v1', '$a0', '$a1', '$a2', '$a3',
+                '$t0', '$t1', '$t2', '$t3', '$t4', '$t5', '$t6', '$t7',
+                '$s0', '$s1', '$s2', '$s3', '$s4', '$s5', '$s6', '$s7',
+                '$t8', '$t9', '$k0', '$k1', '$gp', '$sp', '$fp', '$ra'
+            ],
+            
+            // Tooltip state
+            tooltipVisible: false,
 
-        // Global state to hold the current decoded instruction type for tooltips
-        let currentInstructionType = null;
+            // MIPS Instruction Map (Used by MIPS Decoder)
+            INSTRUCTION_MAP: {
+                '000000': {
+                    type: 'R',
+                    funct: {
+                        '100000': { mnemonic: 'ADD', format: 'rd, rs, rt' },
+                        '100001': { mnemonic: 'ADDU', format: 'rd, rs, rt' },
+                        '100010': { mnemonic: 'SUB', format: 'rd, rs, rt' },
+                        '100100': { mnemonic: 'AND', format: 'rd, rs, rt' },
+                        '100101': { mnemonic: 'OR', format: 'rd, rs, rt' },
+                        '000000': { mnemonic: 'SLL', format: 'rd, rt, sa' },
+                        '000010': { mnemonic: 'SRL', format: 'rd, rt, sa' },
+                        '000011': { mnemonic: 'SRA', format: 'rd, rt, sa' },
+                        '001000': { mnemonic: 'JR', format: 'rs' },
+                    }
+                },
+                '001000': { type: 'I', mnemonic: 'ADDI', format: 'rt, rs, imm' },
+                '001100': { type: 'I', mnemonic: 'ANDI', format: 'rt, rs, imm' },
+                '001101': { type: 'I', mnemonic: 'ORI', format: 'rt, rs, imm' },
+                '100011': { type: 'I', mnemonic: 'LW', format: 'rt, offset(rs)' },
+                '101011': { type: 'I', mnemonic: 'SW', format: 'rt, offset(rs)' },
+                '000100': { type: 'I', mnemonic: 'BEQ', format: 'rs, rt, offset' },
+                '000101': { type: 'I', mnemonic: 'BNE', format: 'rs, rt, offset' },
+                '001111': { type: 'I', mnemonic: 'LUI', format: 'rt, imm' },
+                '000010': { type: 'J', mnemonic: 'J', format: 'target' },
+                '000011': { type: 'J', mnemonic: 'JAL', format: 'target' },
+            },
 
-        // Detailed field explanations
-        const FIELD_DESCRIPTIONS = {
-            Opcode: "The primary operation code (bits 31-26). It determines the instruction format (R, I, or J) and the specific operation for I-type and J-type instructions. Always '000000' for R-type.",
-            Rs: "The first Source Register (bits 25-21). For R-Type and I-Type, it generally holds the address of the first operand or the base address for Load/Store operations.",
-            Rt: "The Target Register (bits 20-16). For I-Type, it's often the destination register. For R-Type, it's the second source operand. For Load/Store, it's the register being loaded from or stored to memory.",
-            Rd: "The Destination Register (bits 15-11). Used exclusively in R-type instructions to specify the register where the operation result is stored.",
-            Shamt: "The Shift Amount (bits 10-6). Used in shift instructions (SLL, SRL, SRA) to specify the number of bits to shift the value in the Rt register.",
-            Funct: "The Function Code (bits 5-0). Used only in R-type instructions to determine the specific ALU operation (e.g., ADD, SUB, AND) since the Opcode is always '000000'.",
-            Immediate: "The 16-bit Immediate value (bits 15-0). Used as a constant operand, a memory address offset, or a branch offset. For branches (BEQ/BNE), this signed value represents the number of instructions (words) to skip relative to the instruction following the branch.",
-            Address: "The 26-bit Pseudo-Address (bits 25-0). Used in J-type instructions (J, JAL). This value is shifted left by two bits and concatenated with the high four bits of the PC to form the jump target address.",
-        };
+            // Field Descriptions (Used by all Simulators)
+            FIELD_DESCRIPTIONS: {
+                Opcode: "The primary operation code (bits 31-26). Determines the instruction format (R, I, or J).",
+                Rs: "The first Source Register (bits 25-21).",
+                Rt: "The Target Register (bits 20-16). Destination for I-Type, Source for R-Type.",
+                Rd: "The Destination Register (bits 15-11). Used exclusively in R-type instructions for the result.",
+                Shamt: "The Shift Amount (bits 10-6). Specifies the number of bits to shift.",
+                Funct: "The Function Code (bits 5-0). Determines the specific ALU operation for R-Type instructions.",
+                Immediate: "The 16-bit Immediate value. Used as a constant, memory offset, or branch offset.",
+                Address: "The 26-bit Pseudo-Address (bits 25-0). Used in J-type instructions.",
+                Sign: "The most significant bit (bit 31). '0' for positive, '1' for negative.",
+                Exponent: "The 8-bit exponent field (bits 30-23). Uses excess-127 (biased) representation.",
+                Mantissa: "The 23-bit mantissa (bits 22-0). Holds the fractional part of the number, implicitly preceded by a '1.' (hidden bit).",
+                ALU_OP: "The operation being performed (ADD, SUB, AND, OR).",
+                Cache_Tag: "The high-order bits of the memory address. Used to uniquely identify a block within a specific cache set/line.",
+                Cache_Index: "The middle bits of the memory address. Used to select a specific cache set or line where the block resides.",
+                Cache_Offset: "The low-order bits of the memory address. Used to locate the specific byte/word within the block.",
+                AMAT_L1_HR: "L1 Cache Hit Rate (H1). The probability of finding data in L1.",
+                AMAT_L2_HR: "L2 Cache Hit Rate (H2). The probability of finding data in L2, given a miss in L1.",
+                AMAT_L1_HT: "L1 Cache Hit Time (T1). The time taken to access data in L1.",
+                AMAT_L2_HT: "L2 Cache Hit Time (T2). The time taken to access data in L2.",
+                AMAT_MM_MP: "Main Memory Miss Penalty (T3). The time taken to access data from main memory.",
+                Pipeline_RAW: "Read-After-Write (RAW) Hazard. When an instruction tries to read a register value before a previous instruction has finished writing to it, requiring a stall.",
+                Pipeline_Stages: "The five stages of the MIPS pipeline: IF (Instruction Fetch), ID (Instruction Decode/Register Fetch), EX (Execute), MEM (Memory Access), and WB (Write Back).",
+            },
 
+            // --- View Rendering ---
+            renderView(viewName, data = {}) {
+                const content = document.getElementById('app-content');
+                const backButton = document.getElementById('backButton');
+                content.innerHTML = '';
+                app.currentView = viewName;
 
-        // Simplified MIPS Instruction Map (Opcode -> {Type, Mnemonic} or Opcode -> Funct Map)
-        const INSTRUCTION_MAP = {
-            // R-Type Instructions (Opcode 0x00) use the Funct field
-            '000000': {
-                type: 'R',
-                funct: {
-                    '100000': { mnemonic: 'ADD', format: 'rd, rs, rt' },
-                    '100001': { mnemonic: 'ADDU', format: 'rd, rs, rt' }, // Added ADDU
-                    '100010': { mnemonic: 'SUB', format: 'rd, rs, rt' },
-                    '100100': { mnemonic: 'AND', format: 'rd, rs, rt' },
-                    '100101': { mnemonic: 'OR', format: 'rd, rs, rt' },
-                    '000000': { mnemonic: 'SLL', format: 'rd, rt, sa' }, // Shift Left Logical
-                    '000010': { mnemonic: 'SRL', format: 'rd, rt, sa' }, // Added SRL (Shift Right Logical)
-                    '000011': { mnemonic: 'SRA', format: 'rd, rt, sa' }, // Added SRA (Shift Right Arithmetic)
-                    '001000': { mnemonic: 'JR', format: 'rs' },
+                if (viewName === 'home') {
+                    content.innerHTML = app.views.home();
+                    backButton.classList.add('hidden');
+                } else {
+                    backButton.classList.remove('hidden');
+                    const viewFn = app.views[viewName];
+                    if (viewFn) {
+                        content.innerHTML = viewFn(data);
+                        // Trigger initial calculations for simulators that need it
+                        setTimeout(() => {
+                            if (viewName === 'mipsDecoder') {
+                                document.getElementById('instructionInput').value = '0x02324021';
+                                app.simulators.mipsDecoder.decodeInstruction();
+                            } else if (viewName === 'ieee754Converter') {
+                                document.getElementById('decimalInput').value = '12.625';
+                                app.simulators.ieee754Converter.convertIEEE754();
+                            } else if (viewName === 'cacheMapper') {
+                                app.simulators.cacheMapper.calculateCacheMapping();
+                            } else if (viewName === 'aluSimulator') {
+                                app.simulators.aluSimulator.simulateALU();
+                            } else if (viewName === 'pipelining') {
+                                app.simulators.pipelining.simulatePipeline();
+                            } else if (viewName === 'memoryHierarchy') {
+                                app.simulators.memoryHierarchy.calculateAMAT();
+                            }
+                        }, 0);
+                    }
                 }
             },
-            // I-Type Instructions
-            '001000': { type: 'I', mnemonic: 'ADDI', format: 'rt, rs, imm' },
-            '001100': { type: 'I', mnemonic: 'ANDI', format: 'rt, rs, imm' },
-            '001101': { type: 'I', mnemonic: 'ORI', format: 'rt, rs, imm' },
-            '100011': { type: 'I', mnemonic: 'LW', format: 'rt, offset(rs)' },
-            '101011': { type: 'I', mnemonic: 'SW', format: 'rt, offset(rs)' },
-            '000100': { type: 'I', mnemonic: 'BEQ', format: 'rs, rt, offset' },
-            '000101': { type: 'I', mnemonic: 'BNE', format: 'rs, rt, offset' },
-            '001111': { type: 'I', mnemonic: 'LUI', format: 'rt, imm' }, // lui $rt, imm
-            // J-Type Instructions
-            '000010': { type: 'J', mnemonic: 'J', format: 'target' },
-            '000011': { type: 'J', mnemonic: 'JAL', format: 'target' },
+
+            // --- Tooltip Logic (Reusable for all sims) ---
+            showInfo(event, fieldKey) {
+                const tooltip = document.getElementById('infoTooltip');
+                const description = app.FIELD_DESCRIPTIONS[fieldKey] || `No detailed description available for ${fieldKey}.`;
+
+                tooltip.innerHTML = `<p class="font-bold text-indigo-300 mb-2">${fieldKey}</p><p>${description}</p>`;
+                tooltip.classList.remove('hidden');
+
+                const buttonRect = event.currentTarget.getBoundingClientRect();
+                
+                let topPos = buttonRect.top + window.scrollY + 20;
+                let leftPos = buttonRect.right + 10;
+                
+                if (buttonRect.right + tooltip.offsetWidth + 10 > window.innerWidth) {
+                    leftPos = buttonRect.left - tooltip.offsetWidth - 10;
+                    if (leftPos < 10) leftPos = 10; 
+                }
+                
+                tooltip.style.left = `${leftPos}px`;
+                tooltip.style.top = `${topPos}px`;
+                
+                document.removeEventListener('click', app.hideInfo);
+                setTimeout(() => {
+                    document.addEventListener('click', app.hideInfo, { once: true });
+                }, 10);
+                
+                event.stopPropagation(); 
+            },
+
+            hideInfo() {
+                document.getElementById('infoTooltip').classList.add('hidden');
+            },
+
+
+            // --- HTML View Templates ---
+            views: {
+                home: () => `
+                    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        ${app.views.simulatorCard('mipsDecoder', '1. MIPS Instruction Decoder', '32-bit R/I/J instruction breakdown and assembly translation.', 'ph-fill ph-code-block')}
+                        ${app.views.simulatorCard('pipelining', '2. 5-Stage Pipelining', 'Visualize instruction flow and detect Data Hazards (stalls).', 'ph-fill ph-pipeline-fill')}
+                        ${app.views.simulatorCard('cacheMapper', '3. Direct Mapped Cache', 'Calculate Tag, Index, and Offset from a 32-bit memory address.', 'ph-fill ph-vault')}
+                        ${app.views.simulatorCard('memoryHierarchy', '4. Memory Hierarchy (AMAT)', 'Calculate Average Memory Access Time (AMAT) for two-level cache.', 'ph-fill ph-hard-drive')}
+                        ${app.views.simulatorCard('ieee754Converter', '5. IEEE 754 Converter', 'Convert Decimal to Single Precision (32-bit) Floating Point.', 'ph-fill ph-infinity')}
+                        ${app.views.simulatorCard('aluSimulator', '6. 8-bit ALU Simulator', 'Arithmetic & Logic Unit simulation (ADD, SUB, AND, OR) with status flags.', 'ph-fill ph-calculator')}
+                    </div>
+                `,
+                simulatorCard: (id, title, description, iconClass) => `
+                    <div class="simulator-card bg-gray-800 p-6 rounded-xl shadow-lg border border-indigo-700 cursor-pointer" onclick="app.renderView('${id}')">
+                        <div class="flex items-center space-x-4">
+                            <i class="${iconClass} text-4xl text-indigo-400"></i>
+                            <div>
+                                <h3 class="text-xl font-bold text-white">${title}</h3>
+                                <p class="text-gray-400">${description}</p>
+                            </div>
+                        </div>
+                    </div>
+                `,
+                
+                // --- 1. MIPS Decoder View (Existing) ---
+                mipsDecoder: () => `
+                    <h2 class="text-3xl font-bold text-indigo-300 mb-6">MIPS 32-bit Instruction Decoder</h2>
+                    <section class="bg-gray-800 p-6 rounded-xl shadow-lg mb-8">
+                        <label for="instructionInput" class="block text-sm font-medium text-gray-300 mb-2">Machine Code Input (8 Hex Digits = 32 Bits):</label>
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <input type="text" id="instructionInput" placeholder="e.g., 0x02324021 (ADDU $t0, $s1, $s2)"
+                                class="w-full sm:w-3/4 px-4 py-3 bg-gray-900 border border-indigo-500 text-lg rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 transition"
+                                maxlength="10">
+                            <button onclick="app.simulators.mipsDecoder.decodeInstruction()"
+                                class="w-full sm:w-1/4 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-md transition duration-200">
+                                Decode
+                            </button>
+                        </div>
+                        <p id="errorMsgMips" class="text-red-400 mt-2 h-5"></p>
+                    </section>
+
+                    <section class="bg-gray-800 p-6 rounded-xl shadow-lg">
+                        <h3 class="text-2xl font-semibold text-indigo-400 mb-4">Decode Results</h3>
+                        
+                        <div class="bg-gray-700 p-4 rounded-lg mb-6">
+                            <p class="text-sm font-medium text-gray-300">Assembly Instruction:</p>
+                            <code id="assemblyOutput" class="text-3xl font-mono text-green-400 break-all min-h-8 block"></code>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-700">
+                                <thead class="bg-gray-700">
+                                    <tr>
+                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Field</th>
+                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Bits (Start:End)</th>
+                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Binary Value</th>
+                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Decimal Value</th>
+                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Meaning</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="breakdownBodyMips" class="divide-y divide-gray-700 text-sm">
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <h3 class="text-xl font-medium text-gray-300 mt-8 mb-4">32-bit Visual Breakdown</h3>
+                        <div id="visualBreakdownMips" class="font-mono text-sm overflow-x-auto pb-2">
+                        </div>
+                    </section>
+                `,
+                
+                // --- 2. Pipelining Simulator View (NEW) ---
+                pipelining: () => `
+                    <h2 class="text-3xl font-bold text-indigo-300 mb-6">5-Stage MIPS Pipelining Simulator</h2>
+                    <section class="bg-gray-800 p-6 rounded-xl shadow-lg mb-8">
+                        <div class="flex justify-between items-center mb-4">
+                            <label for="pipelineInput" class="block text-sm font-medium text-gray-300">Enter Assembly Code (one instruction per line):</label>
+                            <span onclick="app.showInfo(event, 'Pipeline_Stages')" class="ml-2 text-indigo-400 cursor-pointer hover:text-indigo-300 transition" title="Information">
+                                <i class="ph-fill ph-info-i text-base"></i>
+                            </span>
+                        </div>
+                        <textarea id="pipelineInput" rows="6" placeholder="Example:\nADD $t1, $t0, $s1\nLW $t2, 4($t1)\nSUB $s0, $t2, $t3"
+                            class="w-full px-4 py-3 bg-gray-900 border border-indigo-500 text-lg rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 transition font-mono"></textarea>
+                        
+                        <div class="flex items-center mt-4 mb-4">
+                            <input type="checkbox" id="forwardingCheckbox" checked class="h-4 w-4 text-indigo-600 bg-gray-900 border-gray-600 rounded focus:ring-indigo-500">
+                            <label for="forwardingCheckbox" class="ml-2 text-sm text-gray-300">Enable Data Forwarding (Hazard Control)</label>
+                        </div>
+
+                        <button onclick="app.simulators.pipelining.simulatePipeline()"
+                            class="w-full px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-md transition duration-200">
+                            Simulate Pipeline
+                        </button>
+                        <p id="errorMsgPipeline" class="text-red-400 mt-2 h-5"></p>
+                    </section>
+
+                    <section class="bg-gray-800 p-6 rounded-xl shadow-lg">
+                        <h3 class="text-2xl font-semibold text-indigo-400 mb-4">Pipeline Execution Visualization</h3>
+                        <p id="totalCycles" class="text-lg font-medium text-gray-300 mb-4"></p>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-700">
+                                <thead class="bg-gray-700">
+                                    <tr id="pipelineHeader">
+                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider pipeline-stage">Instruction</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pipelineBody" class="divide-y divide-gray-700 text-sm">
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="mt-4 p-3 bg-gray-700 rounded-lg">
+                            <h4 class="text-lg text-indigo-300 mb-2">Legend:</h4>
+                            <div class="flex flex-wrap gap-x-6 gap-y-2 text-sm">
+                                <span class="flex items-center"><span class="h-3 w-3 rounded-full bg-green-500 mr-2"></span> Active Stage</span>
+                                <span class="flex items-center"><span class="h-3 w-3 rounded-full bg-red-600 mr-2"></span> Stall / NOP</span>
+                                <span class="flex items-center"><span class="h-3 w-3 rounded-full bg-yellow-500 mr-2"></span> Data Hazard Detected (RAW)</span>
+                                <span class="flex items-center"><span class="h-3 w-3 rounded-full bg-blue-500 mr-2"></span> Forwarding Used</span>
+                            </div>
+                        </div>
+                    </section>
+                `,
+
+                // --- 3. Cache Mapper View (Existing) ---
+                cacheMapper: () => `
+                    <h2 class="text-3xl font-bold text-indigo-300 mb-6">Direct Mapped Cache Calculator</h2>
+                    <section class="bg-gray-800 p-6 rounded-xl shadow-lg mb-8">
+                        <div class="grid md:grid-cols-3 gap-4 mb-4">
+                            <div>
+                                <label for="memAddressInput" class="block text-sm font-medium text-gray-300 mb-1">Memory Address (Hex, 32-bit)</label>
+                                <input type="text" id="memAddressInput" value="0xFF0000A4"
+                                    class="w-full px-4 py-2 bg-gray-900 border border-indigo-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 transition text-lg uppercase" maxlength="10">
+                            </div>
+                            <div>
+                                <label for="cacheSizeInput" class="block text-sm font-medium text-gray-300 mb-1">Cache Size (KB)</label>
+                                <input type="number" id="cacheSizeInput" value="16" min="1" step="1"
+                                    class="w-full px-4 py-2 bg-gray-900 border border-indigo-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 transition text-lg">
+                            </div>
+                            <div>
+                                <label for="blockSizeInput" class="block text-sm font-medium text-gray-300 mb-1">Block Size (Bytes)</label>
+                                <input type="number" id="blockSizeInput" value="64" min="1" step="1"
+                                    class="w-full px-4 py-2 bg-gray-900 border border-indigo-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 transition text-lg">
+                            </div>
+                        </div>
+                        <button onclick="app.simulators.cacheMapper.calculateCacheMapping()"
+                            class="w-full mt-4 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-md transition duration-200">
+                            Calculate Mapping
+                        </button>
+                        <p id="errorMsgCache" class="text-red-400 mt-2 h-5"></p>
+                    </section>
+
+                    <section class="bg-gray-800 p-6 rounded-xl shadow-lg">
+                        <h3 class="text-2xl font-semibold text-indigo-400 mb-4">Address Breakdown (Direct Mapped)</h3>
+                        
+                        <div class="grid md:grid-cols-3 gap-4 mb-6 text-center">
+                            <div class="bg-gray-700 p-4 rounded-lg">
+                                <p class="text-sm font-medium text-gray-300">Tag Bits:</p>
+                                <code id="tagBits" class="text-2xl font-mono text-purple-400 block"></code>
+                            </div>
+                            <div class="bg-gray-700 p-4 rounded-lg">
+                                <p class="text-sm font-medium text-gray-300">Index Bits:</p>
+                                <code id="indexBits" class="text-2xl font-mono text-teal-400 block"></code>
+                            </div>
+                            <div class="bg-gray-700 p-4 rounded-lg">
+                                <p class="text-sm font-medium text-gray-300">Offset Bits:</p>
+                                <code id="offsetBits" class="text-2xl font-mono text-orange-400 block"></code>
+                            </div>
+                        </div>
+
+                        <h4 class="text-xl font-medium text-gray-300 mb-2">Results:</h4>
+                        <div class="bg-gray-700 p-4 rounded-lg">
+                            <p class="text-sm text-gray-400">Memory Address Binary (32-bit):</p>
+                            <code id="memAddressBinary" class="text-md font-mono text-green-400 break-all mb-4 block"></code>
+                            <p class="text-sm text-gray-400">Cache Line Index:</p>
+                            <code id="cacheIndex" class="text-xl font-mono text-teal-400 mb-4 block"></code>
+                            <p class="text-sm text-gray-400">Tag Value:</p>
+                            <code id="tagValue" class="text-xl font-mono text-purple-400 block"></code>
+                        </div>
+
+                        <h3 class="text-xl font-medium text-gray-300 mt-8 mb-4">Address Field Allocation</h3>
+                        <div id="visualBreakdownCache" class="font-mono text-sm overflow-x-auto visual-bits">
+                        </div>
+                    </section>
+                `,
+
+                // --- 4. Memory Hierarchy AMAT Calculator View (NEW) ---
+                memoryHierarchy: () => `
+                    <h2 class="text-3xl font-bold text-indigo-300 mb-6">Memory Hierarchy AMAT Calculator (L1 & L2)</h2>
+                    <section class="bg-gray-800 p-6 rounded-xl shadow-lg mb-8">
+                        <h3 class="text-xl font-semibold text-indigo-300 mb-4">L1 Cache Parameters</h3>
+                        <div class="grid md:grid-cols-3 gap-4 mb-6">
+                            <div>
+                                <label for="h1" class="block text-sm font-medium text-gray-300 mb-1">Hit Rate (H1) <i onclick="app.showInfo(event, 'AMAT_L1_HR')" class="ph-fill ph-info-i text-xs text-indigo-400 cursor-pointer"></i></label>
+                                <input type="number" id="h1" value="0.95" min="0" max="1" step="0.01" class="w-full px-4 py-2 bg-gray-900 border border-indigo-500 rounded-lg text-lg">
+                            </div>
+                            <div>
+                                <label for="t1" class="block text-sm font-medium text-gray-300 mb-1">Hit Time (T1, cycles) <i onclick="app.showInfo(event, 'AMAT_L1_HT')" class="ph-fill ph-info-i text-xs text-indigo-400 cursor-pointer"></i></label>
+                                <input type="number" id="t1" value="1" min="1" step="1" class="w-full px-4 py-2 bg-gray-900 border border-indigo-500 rounded-lg text-lg">
+                            </div>
+                            <div></div>
+                        </div>
+
+                        <h3 class="text-xl font-semibold text-indigo-300 mb-4">L2 Cache & Main Memory Parameters</h3>
+                        <div class="grid md:grid-cols-3 gap-4 mb-4">
+                            <div>
+                                <label for="h2" class="block text-sm font-medium text-gray-300 mb-1">L2 Hit Rate (H2) <i onclick="app.showInfo(event, 'AMAT_L2_HR')" class="ph-fill ph-info-i text-xs text-indigo-400 cursor-pointer"></i></label>
+                                <input type="number" id="h2" value="0.80" min="0" max="1" step="0.01" class="w-full px-4 py-2 bg-gray-900 border border-indigo-500 rounded-lg text-lg">
+                            </div>
+                            <div>
+                                <label for="t2" class="block text-sm font-medium text-gray-300 mb-1">L2 Hit Time (T2, cycles) <i onclick="app.showInfo(event, 'AMAT_L2_HT')" class="ph-fill ph-info-i text-xs text-indigo-400 cursor-pointer"></i></label>
+                                <input type="number" id="t2" value="10" min="1" step="1" class="w-full px-4 py-2 bg-gray-900 border border-indigo-500 rounded-lg text-lg">
+                            </div>
+                            <div>
+                                <label for="t3" class="block text-sm font-medium text-gray-300 mb-1">Main Memory Penalty (T3, cycles) <i onclick="app.showInfo(event, 'AMAT_MM_MP')" class="ph-fill ph-info-i text-xs text-indigo-400 cursor-pointer"></i></label>
+                                <input type="number" id="t3" value="100" min="1" step="1" class="w-full px-4 py-2 bg-gray-900 border border-indigo-500 rounded-lg text-lg">
+                            </div>
+                        </div>
+
+                        <button onclick="app.simulators.memoryHierarchy.calculateAMAT()"
+                            class="w-full mt-4 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-md transition duration-200">
+                            Calculate AMAT
+                        </button>
+                        <p id="errorMsgAmat" class="text-red-400 mt-2 h-5"></p>
+                    </section>
+
+                    <section class="bg-gray-800 p-6 rounded-xl shadow-lg">
+                        <h3 class="text-2xl font-semibold text-indigo-400 mb-4">Average Memory Access Time (AMAT)</h3>
+                        
+                        <div class="bg-gray-700 p-4 rounded-lg">
+                            <p class="text-sm font-medium text-gray-300">AMAT Formula:</p>
+                            <code class="text-xl font-mono text-cyan-400 block mb-4">AMAT = T1 + (1 - H1) × [T2 + (1 - H2) × T3]</code>
+
+                            <p class="text-sm font-medium text-gray-300">Calculated AMAT:</p>
+                            <code id="amatOutput" class="text-4xl font-mono text-green-400 block"></code>
+                            <p class="text-sm text-gray-400 mt-2">Cycles per Memory Access</p>
+                        </div>
+                    </section>
+                `,
+                
+                // --- 5. IEEE 754 Converter View (Existing) ---
+                ieee754Converter: () => `
+                    <h2 class="text-3xl font-bold text-indigo-300 mb-6">IEEE 754 Single Precision (32-bit) Converter</h2>
+                    <section class="bg-gray-800 p-6 rounded-xl shadow-lg mb-8">
+                        <label for="decimalInput" class="block text-sm font-medium text-gray-300 mb-2">Decimal Value Input:</label>
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <input type="number" step="any" id="decimalInput" placeholder="e.g., 12.625 or -0.75"
+                                class="w-full sm:w-3/4 px-4 py-3 bg-gray-900 border border-indigo-500 text-lg rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 transition">
+                            <button onclick="app.simulators.ieee754Converter.convertIEEE754()"
+                                class="w-full sm:w-1/4 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-md transition duration-200">
+                                Convert
+                            </button>
+                        </div>
+                        <p id="errorMsgIeee" class="text-red-400 mt-2 h-5"></p>
+                    </section>
+
+                    <section class="bg-gray-800 p-6 rounded-xl shadow-lg">
+                        <h3 class="text-2xl font-semibold text-indigo-400 mb-4">Conversion Results</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <div class="bg-gray-700 p-4 rounded-lg">
+                                <p class="text-sm font-medium text-gray-300">Binary (32-bit):</p>
+                                <code id="binaryOutput" class="text-xl font-mono text-green-400 break-all"></code>
+                            </div>
+                            <div class="bg-gray-700 p-4 rounded-lg">
+                                <p class="text-sm font-medium text-gray-300">Hexadecimal:</p>
+                                <code id="hexOutput" class="text-xl font-mono text-yellow-400 break-all"></code>
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto mb-6">
+                            <table class="min-w-full divide-y divide-gray-700">
+                                <thead class="bg-gray-700">
+                                    <tr>
+                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Field</th>
+                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Bits</th>
+                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Binary Value</th>
+                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">True Value</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="breakdownBodyIeee" class="divide-y divide-gray-700 text-sm">
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <h3 class="text-xl font-medium text-gray-300 mt-8 mb-4">32-bit Visual Breakdown</h3>
+                        <div id="visualBreakdownIeee" class="font-mono text-lg overflow-x-auto visual-bits">
+                        </div>
+                    </section>
+                `,
+
+                // --- 6. 8-bit ALU View (Existing) ---
+                aluSimulator: () => `
+                    <h2 class="text-3xl font-bold text-indigo-300 mb-6">8-bit ALU Simulator</h2>
+                    <section class="bg-gray-800 p-6 rounded-xl shadow-lg mb-8">
+                        <div class="grid md:grid-cols-3 gap-4 mb-4 items-end">
+                            <div>
+                                <label for="inputA" class="block text-sm font-medium text-gray-300 mb-1">Input A (Decimal 0-255)</label>
+                                <input type="number" id="inputA" value="100" min="0" max="255"
+                                    class="w-full px-4 py-2 bg-gray-900 border border-indigo-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 transition text-lg">
+                                <p id="inputABin" class="text-sm font-mono text-gray-500 mt-1">Binary: 01100100</p>
+                            </div>
+                            <div>
+                                <label for="inputB" class="block text-sm font-medium text-gray-300 mb-1">Input B (Decimal 0-255)</label>
+                                <input type="number" id="inputB" value="50" min="0" max="255"
+                                    class="w-full px-4 py-2 bg-gray-900 border border-indigo-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 transition text-lg">
+                                <p id="inputBBin" class="text-sm font-mono text-gray-500 mt-1">Binary: 00110010</p>
+                            </div>
+                            <div>
+                                <label for="operationSelect" class="block text-sm font-medium text-gray-300 mb-1">Operation</label>
+                                <select id="operationSelect"
+                                    class="w-full px-4 py-2 bg-gray-900 border border-indigo-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 transition text-lg">
+                                    <option value="ADD">ADD (A + B)</option>
+                                    <option value="SUB">SUB (A - B)</option>
+                                    <option value="AND">AND (A & B)</option>
+                                    <option value="OR">OR (A | B)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button onclick="app.simulators.aluSimulator.simulateALU()"
+                            class="w-full mt-4 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-md transition duration-200">
+                            Execute ALU Operation
+                        </button>
+                        <p id="errorMsgAlu" class="text-red-400 mt-2 h-5"></p>
+                    </section>
+
+                    <section class="bg-gray-800 p-6 rounded-xl shadow-lg">
+                        <h3 class="text-2xl font-semibold text-indigo-400 mb-4">ALU Output & Flags</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-gray-700 p-4 rounded-lg">
+                                <p class="text-sm font-medium text-gray-300">Result (8-bit):</p>
+                                <code id="resultBin" class="text-2xl font-mono text-green-400 block"></code>
+                                <p class="text-sm font-medium text-gray-300 mt-2">Decimal Value:</p>
+                                <code id="resultDec" class="text-xl font-mono text-green-400 block"></code>
+                            </div>
+                            <div class="p-4 rounded-lg bg-gray-700">
+                                <h4 class="text-lg font-medium text-indigo-300 mb-2">Status Flags:</h4>
+                                <div id="flagsOutput" class="space-y-2">
+                                    <!-- Flags will be inserted here -->
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                `,
+            },
+
+            // --- Simulator Logic Functions ---
+            simulators: {
+                // 1. MIPS Instruction Decoder Logic
+                mipsDecoder: {
+                    normalizeInput: (input) => {
+                        const cleanInput = input.trim().toUpperCase().replace(/^(0X|0B)/, '').replace(/[^0-9A-F]/g, '');
+                        if (cleanInput.length !== 8) return null;
+                        
+                        try {
+                            const decimalValue = parseInt(cleanInput, 16);
+                            return decimalValue.toString(2).padStart(32, '0');
+                        } catch (e) {
+                            return null;
+                        }
+                    },
+                    
+                    signExtend: (binaryString) => {
+                        if (binaryString.length !== 16) return parseInt(binaryString, 2);
+                        const isNegative = binaryString[0] === '1';
+                        let value = parseInt(binaryString, 2);
+                        if (isNegative) {
+                            value = value - (1 << 16);
+                        }
+                        return value;
+                    },
+
+                    decodeInstruction: () => {
+                        const inputElement = document.getElementById('instructionInput');
+                        const binaryInstruction = app.simulators.mipsDecoder.normalizeInput(inputElement.value);
+                        const errorElement = document.getElementById('errorMsgMips');
+                        errorElement.textContent = ''; 
+                        
+                        document.getElementById('assemblyOutput').textContent = 'N/A';
+                        document.getElementById('breakdownBodyMips').innerHTML = '';
+                        document.getElementById('visualBreakdownMips').innerHTML = '';
+                        app.hideInfo();
+
+                        if (!binaryInstruction) {
+                            errorElement.textContent = "Invalid input. Please enter exactly 8 Hex digits (32 bits).";
+                            return;
+                        }
+
+                        const Op = binaryInstruction.substring(0, 6);
+                        const OpDec = parseInt(Op, 2);
+                        const instructionTypeInfo = app.INSTRUCTION_MAP[Op];
+
+                        if (!instructionTypeInfo) {
+                            errorElement.textContent = `Unknown Opcode: ${Op} (Dec: ${OpDec}). Cannot decode instruction.`;
+                            return;
+                        }
+
+                        const instructionType = instructionTypeInfo.type;
+                        let mnemonic = 'UNKNOWN';
+                        let breakdownFields = [];
+                        let assembly = '';
+
+                        if (instructionType === 'R') {
+                            const Funct = binaryInstruction.substring(26, 32);
+                            const Rs = binaryInstruction.substring(6, 11);
+                            const Rt = binaryInstruction.substring(11, 16);
+                            const Rd = binaryInstruction.substring(16, 21);
+                            const Shamt = binaryInstruction.substring(21, 26);
+
+                            const functInfo = instructionTypeInfo.funct[Funct];
+                            if (!functInfo) {
+                                errorElement.textContent = `Unknown R-Type Function Code: ${Funct}. Opcode 0x00.`;
+                                return;
+                            }
+
+                            mnemonic = functInfo.mnemonic;
+                            const rsName = app.REGISTER_NAMES[parseInt(Rs, 2)];
+                            const rtName = app.REGISTER_NAMES[parseInt(Rt, 2)];
+                            const rdName = app.REGISTER_NAMES[parseInt(Rd, 2)];
+                            const shamtDec = parseInt(Shamt, 2);
+
+                            breakdownFields = [
+                                { name: 'Opcode', key: 'Opcode', bits: '31:26', bin: Op, dec: OpDec, meaning: 'R-Type (0x00)' },
+                                { name: 'Rs (Source 1)', key: 'Rs', bits: '25:21', bin: Rs, dec: parseInt(Rs, 2), meaning: rsName },
+                                { name: 'Rt (Source 2)', key: 'Rt', bits: '20:16', bin: Rt, dec: parseInt(Rt, 2), meaning: rtName },
+                                { name: 'Rd (Destination)', key: 'Rd', bits: '15:11', bin: Rd, dec: parseInt(Rd, 2), meaning: rdName },
+                                { name: 'Shamt (Shift Amt)', key: 'Shamt', bits: '10:6', bin: Shamt, dec: shamtDec, meaning: 'Shift Amount' },
+                                { name: 'Funct (Function)', key: 'Funct', bits: '5:0', bin: Funct, dec: parseInt(Funct, 2), meaning: mnemonic + ' operation' },
+                            ];
+
+                            if (mnemonic === 'JR') {
+                                assembly = `${mnemonic} ${rsName}`;
+                            } else if (['SLL', 'SRL', 'SRA'].includes(mnemonic)) {
+                                assembly = `${mnemonic} ${rdName}, ${rtName}, ${shamtDec}`;
+                            } else {
+                                assembly = `${mnemonic} ${rdName}, ${rsName}, ${rtName}`;
+                            }
+
+                        } else if (instructionType === 'I') {
+                            const Rs = binaryInstruction.substring(6, 11);
+                            const Rt = binaryInstruction.substring(11, 16);
+                            const ImmediateBin = binaryInstruction.substring(16, 32);
+
+                            mnemonic = instructionTypeInfo.mnemonic;
+                            const ImmediateDec = app.simulators.mipsDecoder.signExtend(ImmediateBin);
+                            const ImmediateHex = '0x' + parseInt(ImmediateBin, 2).toString(16).toUpperCase().padStart(4, '0');
+                            const rsName = app.REGISTER_NAMES[parseInt(Rs, 2)];
+                            const rtName = app.REGISTER_NAMES[parseInt(Rt, 2)];
+
+                            breakdownFields = [
+                                { name: 'Opcode', key: 'Opcode', bits: '31:26', bin: Op, dec: OpDec, meaning: mnemonic },
+                                { name: 'Rs (Source)', key: 'Rs', bits: '25:21', bin: Rs, dec: parseInt(Rs, 2), meaning: rsName },
+                                { name: 'Rt (Target/Dest)', key: 'Rt', bits: '20:16', bin: Rt, dec: parseInt(Rt, 2), meaning: rtName },
+                                { name: 'Immediate', key: 'Immediate', bits: '15:0', bin: ImmediateBin, dec: ImmediateDec, meaning: `Constant or Offset (${ImmediateHex})` },
+                            ];
+
+                            if (mnemonic === 'LW' || mnemonic === 'SW') {
+                                assembly = `${mnemonic} ${rtName}, ${ImmediateDec}(${rsName})`;
+                            } else if (mnemonic === 'BEQ' || mnemonic === 'BNE') {
+                                assembly = `${mnemonic} ${rsName}, ${rtName}, ${ImmediateDec}`;
+                            } else if (mnemonic === 'LUI') {
+                                assembly = `${mnemonic} ${rtName}, ${ImmediateDec}`;
+                            } else {
+                                assembly = `${mnemonic} ${rtName}, ${rsName}, ${ImmediateDec}`;
+                            }
+
+                        } else if (instructionType === 'J') {
+                            const AddressBin = binaryInstruction.substring(6, 32);
+                            mnemonic = instructionTypeInfo.mnemonic;
+                            const AddressDec = parseInt(AddressBin + '00', 2);
+                            const AddressHex = '0x' + AddressDec.toString(16).toUpperCase().padStart(8, '0');
+
+                            breakdownFields = [
+                                { name: 'Opcode', key: 'Opcode', bits: '31:26', bin: Op, dec: OpDec, meaning: mnemonic },
+                                { name: 'Address', key: 'Address', bits: '25:0', bin: AddressBin, dec: AddressDec, meaning: `Target Address (Shifted, ${AddressHex})` },
+                            ];
+                            assembly = `${mnemonic} ${AddressHex}`;
+                        }
+                        
+                        document.getElementById('assemblyOutput').textContent = assembly;
+                        app.simulators.mipsDecoder.updateBreakdownTable(breakdownFields, instructionType);
+                        app.simulators.mipsDecoder.updateVisualBreakdown(binaryInstruction, instructionType);
+                    },
+
+                    updateBreakdownTable: (fields, type) => {
+                        const tbody = document.getElementById('breakdownBodyMips');
+                        tbody.innerHTML = '';
+                        fields.forEach(field => {
+                            const row = document.createElement('tr');
+                            row.className = 'hover:bg-gray-700 transition duration-150';
+                            row.innerHTML = `
+                                <td class="px-3 py-2 whitespace-nowrap font-medium text-indigo-300 flex items-center">
+                                    ${field.name} (${field.bin.length} bits)
+                                    <span onclick="app.showInfo(event, '${field.key}')" class="ml-2 text-indigo-400 cursor-pointer hover:text-indigo-300 transition" title="Information">
+                                        <i class="ph-fill ph-info-i text-base"></i>
+                                    </span>
+                                </td>
+                                <td class="px-3 py-2 whitespace-nowrap text-gray-400">${field.bits}</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-yellow-300 font-mono">${field.bin}</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-gray-300 font-mono">${field.dec}</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-gray-400">${field.meaning}</td>
+                            `;
+                            tbody.appendChild(row);
+                        });
+                    },
+                    
+                    updateVisualBreakdown: (binaryInstruction, type) => {
+                        const visualDiv = document.getElementById('visualBreakdownMips');
+                        visualDiv.innerHTML = '';
+                        
+                        const fieldClasses = {
+                            Op: "text-red-400 font-bold", Rs: "text-green-400 font-bold", Rt: "text-blue-400 font-bold",
+                            Rd: "text-purple-400 font-bold", Shamt: "text-pink-400 font-bold", Funct: "text-yellow-400 font-bold",
+                            Immediate: "text-cyan-400 font-bold", Address: "text-lime-400 font-bold"
+                        };
+
+                        const structureMap = {
+                            'R': [{ name: 'Op', length: 6 }, { name: 'Rs', length: 5 }, { name: 'Rt', length: 5 }, { name: 'Rd', length: 5 }, { name: 'Shamt', length: 5 }, { name: 'Funct', length: 6 }],
+                            'I': [{ name: 'Op', length: 6 }, { name: 'Rs', length: 5 }, { name: 'Rt', length: 5 }, { name: 'Immediate', length: 16 }],
+                            'J': [{ name: 'Op', length: 6 }, { name: 'Address', length: 26 }]
+                        };
+                        
+                        let spans = [];
+                        let start = 0;
+                        structureMap[type].forEach(field => {
+                            const end = start + field.length;
+                            const segment = binaryInstruction.substring(start, end);
+                            spans.push(`<span class="${fieldClasses[field.name]}">${segment}</span>`);
+                            start = end;
+                        });
+
+                        visualDiv.innerHTML = `
+                            <div class="text-lg tracking-widest leading-loose bg-gray-900 p-4 rounded-lg shadow-inner">
+                                ${spans.join('<span class="text-gray-600">|</span>')}
+                            </div>
+                        `;
+                    }
+                },
+                
+                // 2. IEEE 754 Converter Logic (Existing)
+                ieee754Converter: {
+                    convertIEEE754: () => {
+                        const decimalInput = document.getElementById('decimalInput');
+                        const decimalValue = parseFloat(decimalInput.value);
+                        const errorElement = document.getElementById('errorMsgIeee');
+                        errorElement.textContent = ''; 
+
+                        document.getElementById('binaryOutput').textContent = '';
+                        document.getElementById('hexOutput').textContent = '';
+                        document.getElementById('breakdownBodyIeee').innerHTML = '';
+                        document.getElementById('visualBreakdownIeee').innerHTML = '';
+                        app.hideInfo();
+
+                        if (isNaN(decimalValue) || decimalValue === null || decimalInput.value.trim() === '') {
+                            errorElement.textContent = "Please enter a valid decimal number.";
+                            return;
+                        }
+
+                        const buffer = new ArrayBuffer(4);
+                        new DataView(buffer).setFloat32(0, decimalValue, false); 
+                        const int32 = new DataView(buffer).getUint32(0, false);
+                        const binary = int32.toString(2).padStart(32, '0');
+                        const hex = int32.toString(16).toUpperCase().padStart(8, '0');
+
+                        const signBit = binary.substring(0, 1);
+                        const exponentBits = binary.substring(1, 9);
+                        const mantissaBits = binary.substring(9, 32);
+
+                        const exponentDec = parseInt(exponentBits, 2);
+                        const bias = 127;
+                        const trueExponent = exponentDec - bias;
+                        
+                        let trueMantissa = 0;
+                        if (exponentDec !== 0 && exponentDec !== 255) {
+                            trueMantissa = 1;
+                            for (let i = 0; i < mantissaBits.length; i++) {
+                                if (mantissaBits[i] === '1') {
+                                    trueMantissa += Math.pow(2, -(i + 1));
+                                }
+                            }
+                        } else if (exponentDec === 0 && parseInt(mantissaBits, 2) !== 0) {
+                            trueMantissa = 0;
+                            for (let i = 0; i < mantissaBits.length; i++) {
+                                if (mantissaBits[i] === '1') {
+                                    trueMantissa += Math.pow(2, -(i + 1));
+                                }
+                            }
+                        } else if (exponentDec === 255 && parseInt(mantissaBits, 2) === 0) {
+                            trueMantissa = 'Infinity';
+                        } else if (exponentDec === 255 && parseInt(mantissaBits, 2) !== 0) {
+                            trueMantissa = 'NaN';
+                        } else if (exponentDec === 0 && parseInt(mantissaBits, 2) === 0) {
+                            trueMantissa = 'Zero';
+                        }
+
+                        const signMeaning = signBit === '0' ? 'Positive (0)' : 'Negative (1)';
+                        
+                        document.getElementById('binaryOutput').textContent = binary.match(/.{1,4}/g).join(' '); 
+                        document.getElementById('hexOutput').textContent = '0x' + hex;
+                        
+                        const breakdown = [
+                            { name: 'Sign', key: 'Sign', bits: '31', bin: signBit, trueValue: signMeaning },
+                            { name: 'Exponent', key: 'Exponent', bits: '30:23', bin: exponentBits, trueValue: `${exponentDec} (Bias-127 = ${trueExponent})` },
+                            { name: 'Mantissa', key: 'Mantissa', bits: '22:0', bin: mantissaBits, trueValue: trueMantissa === 'Zero' ? '0' : (trueMantissa === 'Infinity' || trueMantissa === 'NaN' ? trueMantissa : `1.${mantissaBits} (Implicit 1)`) },
+                        ];
+                        
+                        const tbody = document.getElementById('breakdownBodyIeee');
+                        tbody.innerHTML = breakdown.map(field => `
+                            <tr class="hover:bg-gray-700 transition duration-150">
+                                <td class="px-3 py-2 whitespace-nowrap font-medium text-indigo-300 flex items-center">
+                                    ${field.name} (${field.bin.length} bits)
+                                    <span onclick="app.showInfo(event, '${field.key}')" class="ml-2 text-indigo-400 cursor-pointer hover:text-indigo-300 transition" title="Information">
+                                        <i class="ph-fill ph-info-i text-base"></i>
+                                    </span>
+                                </td>
+                                <td class="px-3 py-2 whitespace-nowrap text-gray-400">${field.bits}</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-yellow-300 font-mono break-all">${field.bin}</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-gray-300">${field.trueValue}</td>
+                            </tr>
+                        `).join('');
+
+                        document.getElementById('visualBreakdownIeee').innerHTML = `
+                            <span class="text-red-400 font-bold">${signBit}</span>
+                            <span class="text-green-400 font-bold ml-1">${exponentBits}</span>
+                            <span class="text-blue-400 font-bold ml-1">${mantissaBits}</span>
+                            <div class="mt-4 text-xs flex flex-wrap gap-x-4 gap-y-2">
+                                <span class="text-red-400 mr-2">Sign (1)</span>
+                                <span class="text-green-400 mr-2">Exponent (8)</span>
+                                <span class="text-blue-400 mr-2">Mantissa (23)</span>
+                            </div>
+                        `;
+                    }
+                },
+                
+                // 3. Cache Mapper Logic (Existing)
+                cacheMapper: {
+                    calculateCacheMapping: () => {
+                        const addressHex = document.getElementById('memAddressInput').value.trim().toUpperCase().replace(/^(0X)/, '');
+                        const cacheSizeKB = parseInt(document.getElementById('cacheSizeInput').value);
+                        const blockSizeBytes = parseInt(document.getElementById('blockSizeInput').value);
+                        const errorElement = document.getElementById('errorMsgCache');
+                        errorElement.textContent = '';
+                        
+                        document.getElementById('tagBits').textContent = 'N/A';
+                        document.getElementById('indexBits').textContent = 'N/A';
+                        document.getElementById('offsetBits').textContent = 'N/A';
+                        document.getElementById('memAddressBinary').textContent = 'N/A';
+                        document.getElementById('cacheIndex').textContent = 'N/A';
+                        document.getElementById('tagValue').textContent = 'N/A';
+                        document.getElementById('visualBreakdownCache').innerHTML = '';
+                        app.hideInfo();
+
+                        if (addressHex.length !== 8 || isNaN(cacheSizeKB) || isNaN(blockSizeBytes) || cacheSizeKB <= 0 || blockSizeBytes <= 0) {
+                            errorElement.textContent = "Please enter valid 8-digit Hex address, Cache Size (>0), and Block Size (>0).";
+                            return;
+                        }
+                        
+                        const addressBits = 32;
+                        const cacheSize = cacheSizeKB * 1024;
+                        
+                        const offsetBits = Math.log2(blockSizeBytes);
+                        if (offsetBits !== Math.floor(offsetBits)) {
+                            errorElement.textContent = "Block Size must be a power of 2.";
+                            return;
+                        }
+                        
+                        const numBlocks = cacheSize / blockSizeBytes;
+                        const indexBits = Math.log2(numBlocks);
+                        if (indexBits !== Math.floor(indexBits)) {
+                            errorElement.textContent = "Cache Size / Block Size must be a power of 2.";
+                            return;
+                        }
+
+                        const tagBits = addressBits - indexBits - offsetBits;
+                        if (tagBits < 0) {
+                             errorElement.textContent = "Cache/Block sizes are too large for a 32-bit address space.";
+                            return;
+                        }
+
+                        const addressDec = parseInt(addressHex, 16);
+                        const addressBinary = addressDec.toString(2).padStart(32, '0');
+
+                        const tagBinary = addressBinary.substring(0, tagBits);
+                        const indexBinary = addressBinary.substring(tagBits, tagBits + indexBits);
+                        const offsetBinary = addressBinary.substring(tagBits + indexBits);
+
+                        const cacheIndexDec = parseInt(indexBinary, 2) || 0; 
+                        const tagValueHex = '0x' + parseInt(tagBinary, 2).toString(16).toUpperCase().padStart(Math.ceil(tagBits / 4), '0');
+
+                        document.getElementById('tagBits').textContent = tagBits;
+                        document.getElementById('indexBits').textContent = indexBits;
+                        document.getElementById('offsetBits').textContent = offsetBits;
+                        document.getElementById('memAddressBinary').textContent = addressBinary.match(/.{1,4}/g).join(' ');
+                        document.getElementById('cacheIndex').textContent = `${cacheIndexDec} (Binary: ${indexBinary})`;
+                        document.getElementById('tagValue').textContent = tagBinary.length > 0 ? tagBinary + ` (${tagValueHex})` : 'N/A';
+
+                        document.getElementById('visualBreakdownCache').innerHTML = `
+                            <span class="text-purple-400 font-bold">${tagBinary.length > 0 ? tagBinary : 'TAG'}</span>
+                            <span class="text-teal-400 font-bold">${indexBinary.length > 0 ? indexBinary : 'INDEX'}</span>
+                            <span class="text-orange-400 font-bold">${offsetBinary.length > 0 ? offsetBinary : 'OFFSET'}</span>
+                            <div class="mt-4 text-xs flex flex-wrap gap-x-4 gap-y-2">
+                                <span class="text-purple-400 mr-2">Tag (${tagBits})</span>
+                                <span class="text-teal-400 mr-2">Index (${indexBits})</span>
+                                <span class="text-orange-400 mr-2">Offset (${offsetBits})</span>
+                            </div>
+                        `;
+                    }
+                },
+                
+                // 4. Memory Hierarchy AMAT Calculator Logic (NEW)
+                memoryHierarchy: {
+                    calculateAMAT: () => {
+                        const h1 = parseFloat(document.getElementById('h1').value);
+                        const t1 = parseInt(document.getElementById('t1').value);
+                        const h2 = parseFloat(document.getElementById('h2').value);
+                        const t2 = parseInt(document.getElementById('t2').value);
+                        const t3 = parseInt(document.getElementById('t3').value);
+                        const errorElement = document.getElementById('errorMsgAmat');
+                        errorElement.textContent = '';
+                        app.hideInfo();
+
+                        document.getElementById('amatOutput').textContent = 'N/A';
+
+                        if (isNaN(h1) || isNaN(t1) || isNaN(h2) || isNaN(t2) || isNaN(t3) || t1 <= 0 || t2 <= 0 || t3 <= 0 || h1 < 0 || h1 > 1 || h2 < 0 || h2 > 1) {
+                            errorElement.textContent = "Please ensure all values are valid numbers (Rates between 0 and 1, Times > 0).";
+                            return;
+                        }
+                        
+                        const m1 = 1 - h1; // Miss Rate L1
+                        const m2 = 1 - h2; // Miss Rate L2 (Local Miss Rate)
+
+                        // AMAT = T1 + (M1 * T_effective_L2)
+                        // T_effective_L2 = T2 + (M2 * T3)
+                        
+                        const tEffectiveL2 = t2 + (m2 * t3);
+                        const amat = t1 + (m1 * tEffectiveL2);
+
+                        document.getElementById('amatOutput').textContent = amat.toFixed(3);
+                    }
+                },
+
+                // 5. Pipelining Simulator Logic (NEW)
+                pipelining: {
+                    // Utility to extract destination register (Rd or Rt) and source registers (Rs, Rt)
+                    // Simplified: Supports R-type (ADD/SUB rd, rs, rt) and I-type (LW rt, offset(rs))
+                    parseInstruction: (asm) => {
+                        const tokens = asm.toUpperCase().replace(/[$,()]/g, ' ').split(/\s+/).filter(Boolean);
+                        if (tokens.length === 0) return null;
+                        
+                        const op = tokens[0];
+                        let dest = null;
+                        let src1 = null;
+                        let src2 = null;
+
+                        if (['ADD', 'ADDU', 'SUB', 'AND', 'OR'].includes(op)) { // R-Type: rd, rs, rt
+                            if (tokens.length >= 4) {
+                                dest = tokens[1];
+                                src1 = tokens[2];
+                                src2 = tokens[3];
+                            }
+                        } else if (['LW'].includes(op)) { // LW I-Type: rt, offset(rs)
+                             if (tokens.length >= 3) {
+                                dest = tokens[1]; // rt is destination
+                                src1 = tokens[3]; // rs is base register
+                            }
+                        } else if (['ADDI', 'ANDI', 'ORI'].includes(op)) { // ADDI I-Type: rt, rs, imm
+                             if (tokens.length >= 4) {
+                                dest = tokens[1];
+                                src1 = tokens[2];
+                            }
+                        }
+                        
+                        return { op, dest, src1, src2 };
+                    },
+                    
+                    simulatePipeline: () => {
+                        const input = document.getElementById('pipelineInput').value;
+                        const forwardingEnabled = document.getElementById('forwardingCheckbox').checked;
+                        const errorElement = document.getElementById('errorMsgPipeline');
+                        const pipelineBody = document.getElementById('pipelineBody');
+                        const pipelineHeader = document.getElementById('pipelineHeader');
+                        
+                        errorElement.textContent = '';
+                        pipelineBody.innerHTML = '';
+                        pipelineHeader.innerHTML = '<th class="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider pipeline-stage">Instruction</th>';
+                        document.getElementById('totalCycles').textContent = '';
+                        app.hideInfo();
+
+                        const rawInstructions = input.split('\n').map(line => line.trim()).filter(line => line && !line.startsWith('#'));
+                        
+                        if (rawInstructions.length === 0) {
+                            errorElement.textContent = "Please enter at least one instruction.";
+                            return;
+                        }
+
+                        const parsedInstructions = rawInstructions.map(app.simulators.pipelining.parseInstruction).filter(i => i !== null);
+                        const STAGES = ['IF', 'ID', 'EX', 'MEM', 'WB'];
+                        let pipeline = []; // Array of { instruction, cycles: [] }
+                        let clockCycle = 0;
+                        
+                        // 1. Initial Fill & Simulation Loop
+                        for (let i = 0; i < parsedInstructions.length; i++) {
+                            const inst = parsedInstructions[i];
+                            const instCycles = [];
+                            
+                            // Determine when this instruction's IF stage starts
+                            const startCycle = (i === 0) ? 1 : pipeline[i - 1].cycles[0].cycle + 1;
+                            
+                            let currentCycle = startCycle;
+                            
+                            // Check for RAW hazard with instructions I-1 and I-2
+                            // Hazard type: R/I-type (dest) -> R/I-type (src1/src2)
+                            
+                            for (let j = 1; j <= 2; j++) {
+                                const prevInstIndex = i - j;
+                                if (prevInstIndex >= 0) {
+                                    const prevInst = parsedInstructions[prevInstIndex];
+                                    const prevInstResultStage = (prevInst.op === 'LW') ? 'MEM' : 'EX'; // Where result is available
+                                    
+                                    // Check if the current instruction reads a register that the previous instruction writes
+                                    const isHazard = (inst.src1 && inst.src1 === prevInst.dest) || (inst.src2 && inst.src2 === prevInst.dest);
+                                    
+                                    if (isHazard) {
+                                        let stallsNeeded = 0;
+                                        let hazardType = 'RAW';
+                                        
+                                        if (prevInstResultStage === 'EX') {
+                                            // R-type write back: Result available after EX (Cycle 3 for I-2, Cycle 4 for I-1)
+                                            stallsNeeded = forwardingEnabled ? (j === 1 ? 0 : 1) : j; // 1-cycle stall for I-1 if no forwarding, 2 for I-2
+                                            stallsNeeded = forwardingEnabled ? (j === 1 ? 1 : 0) : 2; // For ADD/SUB type: result available end of EX
+                                            
+                                            // For non-forwarding: If I_i reads the register I_i-1 writes, stall 2 cycles. If I_i reads the register I_i-2 writes, stall 1 cycle.
+                                            // For forwarding: No stall needed unless I_i reads immediately after LW
+                                            if (forwardingEnabled) {
+                                                stallsNeeded = 0; // ALU-ALU dependencies are fully forwarded
+                                            } else {
+                                                stallsNeeded = j;
+                                            }
+
+                                        } else if (prevInstResultStage === 'MEM') {
+                                            // LW write back: Result available after MEM (Cycle 4 for I-2, Cycle 5 for I-1)
+                                            hazardType = 'Load Use';
+                                            stallsNeeded = forwardingEnabled ? 1 : j; 
+                                            // LW requires 1 stall even with forwarding, as data is only available at the end of MEM
+                                            if (forwardingEnabled && j === 1) { // Only check immediate predecessor LW
+                                                stallsNeeded = 1;
+                                            } else if (forwardingEnabled && j === 2) {
+                                                stallsNeeded = 0; // LW I-2 dependency is usually harmless with forwarding
+                                            } else if (!forwardingEnabled) {
+                                                stallsNeeded = j;
+                                            }
+                                        }
+
+                                        // Ensure stalls are never more than 2 total, since we only check I-1 and I-2
+                                        stallsNeeded = Math.min(stallsNeeded, 2);
+
+                                        // Apply stalls
+                                        for (let k = 0; k < stallsNeeded; k++) {
+                                            const stallCycle = currentCycle + k;
+                                            instCycles.push({ cycle: stallCycle, stage: 'STALL', hazard: isHazard, forwarding: forwardingEnabled });
+                                            // Shift the start of IF for this instruction
+                                            currentCycle++; 
+                                        }
+                                        break; // Process one hazard at a time
+                                    }
+                                }
+                            }
+                            
+                            // Add pipeline stages
+                            let stageStart = currentCycle;
+                            STAGES.forEach((stage, stageIndex) => {
+                                const cycle = stageStart + stageIndex;
+                                instCycles.push({ cycle: cycle, stage: stage, hazard: false, forwarding: false });
+                            });
+                            
+                            pipeline.push({ instruction: rawInstructions[i], cycles: instCycles, parsed: inst });
+                        }
+
+                        // 2. Determine Max Cycle and Render Header
+                        const maxCycle = pipeline.reduce((max, inst) => {
+                            const lastCycle = inst.cycles[inst.cycles.length - 1].cycle;
+                            return Math.max(max, lastCycle);
+                        }, 0);
+                        
+                        for (let c = 1; c <= maxCycle; c++) {
+                            pipelineHeader.innerHTML += `<th class="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider pipeline-stage">C${c}</th>`;
+                        }
+                        
+                        // 3. Render Body (Fill the table)
+                        pipeline.forEach(instData => {
+                            const row = document.createElement('tr');
+                            row.className = 'hover:bg-gray-700 transition duration-150';
+                            
+                            // Instruction Name
+                            let rowContent = `<td class="px-3 py-2 font-mono text-indigo-300 pipeline-stage">${instData.instruction}</td>`;
+
+                            let currentCycle = 1;
+                            const cycleMap = instData.cycles.reduce((map, c) => {
+                                map[c.cycle] = c;
+                                return map;
+                            }, {});
+                            
+                            for (let c = 1; c <= maxCycle; c++) {
+                                const cycleData = cycleMap[c];
+                                let stageContent = '';
+                                let colorClass = 'bg-gray-800'; // Empty stage
+
+                                if (cycleData) {
+                                    if (cycleData.stage === 'STALL') {
+                                        colorClass = 'bg-red-600';
+                                        stageContent = 'STALL';
+                                    } else {
+                                        colorClass = 'bg-green-500';
+                                        stageContent = cycleData.stage;
+                                        
+                                        // Highlight hazards/forwarding in ID/EX
+                                        if (cycleData.stage === 'ID' || cycleData.stage === 'EX') {
+                                            const isHazardStall = instData.cycles.some(c => c.stage === 'STALL' && c.cycle === c + 1);
+                                            if (isHazardStall) {
+                                                colorClass = 'bg-yellow-500';
+                                            } else if (cycleData.stage === 'EX' && forwardingEnabled) {
+                                                 // Assume EX is the point where forwarding resolves the dependency
+                                                 // This is a visualization hack: we'll use blue if forwarding is enabled and a hazard was detected
+                                                 if (instData.cycles.some(c => c.stage === 'STALL' && c.hazard)) {
+                                                    colorClass = 'bg-blue-500';
+                                                 }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                rowContent += `
+                                    <td class="px-1 py-2 border-l border-gray-800 pipeline-stage">
+                                        <div class="h-6 flex items-center justify-center text-xs text-white rounded-md ${colorClass}">
+                                            ${stageContent}
+                                        </div>
+                                    </td>
+                                `;
+                                currentCycle++;
+                            }
+                            row.innerHTML = rowContent;
+                            pipelineBody.appendChild(row);
+                        });
+                        
+                        document.getElementById('totalCycles').textContent = `Total Clock Cycles: ${maxCycle}`;
+                    }
+                },
+                
+                // 6. 8-bit ALU View Logic (Existing)
+                aluSimulator: {
+                    decToBin8: (dec) => dec.toString(2).padStart(8, '0'),
+
+                    simulateALU: () => {
+                        const inputA = parseInt(document.getElementById('inputA').value);
+                        const inputB = parseInt(document.getElementById('inputB').value);
+                        const operation = document.getElementById('operationSelect').value;
+                        const errorElement = document.getElementById('errorMsgAlu');
+                        errorElement.textContent = '';
+                        app.hideInfo();
+
+                        if (isNaN(inputA) || isNaN(inputB) || inputA < 0 || inputA > 255 || inputB < 0 || inputB > 255) {
+                            errorElement.textContent = "Inputs must be valid integers between 0 and 255.";
+                            return;
+                        }
+
+                        document.getElementById('inputABin').textContent = `Binary: ${app.simulators.aluSimulator.decToBin8(inputA)}`;
+                        document.getElementById('inputBBin').textContent = `Binary: ${app.simulators.aluSimulator.decToBin8(inputB)}`;
+
+                        let result;
+                        let carry = 0;
+                        let overflow = 0;
+                        let zero = false;
+                        let negative = false;
+
+                        if (operation === 'ADD') {
+                            result = inputA + inputB;
+                            carry = (result > 255) ? 1 : 0;
+                            result = result & 0xFF;
+
+                            const signedA = (inputA << 24) >> 24;
+                            const signedB = (inputB << 24) >> 24;
+                            const signedResult = (signedA + signedB) << 24 >> 24;
+
+                            overflow = ((signedA > 0 && signedB > 0 && signedResult < 0) || (signedA < 0 && signedB < 0 && signedResult > 0)) ? 1 : 0;
+
+                        } else if (operation === 'SUB') {
+                            const twoComplementB = (~inputB + 256) & 0xFF;
+                            result = inputA + twoComplementB;
+                            carry = (result > 255) ? 1 : 0; 
+                            result = result & 0xFF;
+
+                            const signedA = (inputA << 24) >> 24;
+                            const signedB = (inputB << 24) >> 24;
+                            const signedResult = (signedA - signedB) << 24 >> 24;
+
+                            overflow = ((signedA > 0 && signedB < 0 && signedResult < 0) || (signedA < 0 && signedB > 0 && signedResult > 0)) ? 1 : 0;
+
+                        } else if (operation === 'AND') {
+                            result = inputA & inputB;
+                            carry = 0; overflow = 0;
+                        } else if (operation === 'OR') {
+                            result = inputA | inputB;
+                            carry = 0; overflow = 0;
+                        }
+
+                        zero = (result === 0);
+                        negative = (result & 0x80) !== 0;
+
+                        document.getElementById('resultBin').textContent = app.simulators.aluSimulator.decToBin8(result);
+                        document.getElementById('resultDec').textContent = result;
+                        
+                        const flags = [
+                            { name: 'Zero Flag (Z)', value: zero ? 1 : 0, desc: 'Result is zero.' },
+                            { name: 'Negative Flag (N)', value: negative ? 1 : 0, desc: 'Result MSB (bit 7) is 1 (Signed negative).' },
+                            { name: 'Carry Flag (C)', value: carry, desc: 'Output carry from the highest bit (only for ADD/SUB).' },
+                            { name: 'Overflow Flag (V)', value: overflow, desc: 'Signed overflow occurred (only for ADD/SUB).' },
+                        ];
+                        
+                        document.getElementById('flagsOutput').innerHTML = flags.map(f => `
+                            <div class="flex justify-between items-center text-md">
+                                <span class="text-gray-300">${f.name}</span>
+                                <span class="font-mono text-xl ${f.value === 1 ? 'text-red-400 font-bold' : 'text-green-400'}">${f.value}</span>
+                                <i onclick="app.showInfo(event, 'ALU_OP')" class="ph-fill ph-info-i text-base text-indigo-400 cursor-pointer hover:text-indigo-300" title="${f.desc}"></i>
+                            </div>
+                        `).join('');
+                    }
+                }
+            }
         };
 
-        const ERROR_MSG_DURATION = 3000;
-        let errorTimer;
-
-        /**
-         * Cleans and normalizes the input to a 32-bit binary string.
-         * @param {string} input - User input (Hex or Binary).
-         * @returns {string | null} 32-bit binary string or null on error.
-         */
-        function normalizeInput(input) {
-            // Remove '0x' or '0b' prefixes and any spaces/non-hex characters
-            const cleanInput = input.trim().toUpperCase().replace(/^(0X|0B)/, '').replace(/[^0-9A-F]/g, '');
-            let binaryString = '';
-
-            if (cleanInput.length === 8) {
-                // Assume 8-digit Hex input (e.g., 02328820)
-                try {
-                    const decimalValue = parseInt(cleanInput, 16);
-                    if (isNaN(decimalValue)) throw new Error("Invalid hex value.");
-                    
-                    // Convert to 32-bit binary string, zero-padding on the left
-                    binaryString = decimalValue.toString(2).padStart(32, '0');
-                } catch (e) {
-                    return null;
-                }
-            } else if (cleanInput.length === 32) {
-                // Assume 32-bit Binary input (e.g., 00000010001100101000100000100000)
-                if (!/^[01]{32}$/.test(cleanInput)) return null;
-                binaryString = cleanInput;
-            } else {
-                return null;
-            }
-
-            return binaryString;
-        }
-
-        /**
-         * Displays a temporary error message.
-         * @param {string} message - The error message.
-         */
-        function displayError(message) {
-            clearTimeout(errorTimer);
-            const errorElement = document.getElementById('errorMsg');
-            errorElement.textContent = message;
-            errorElement.classList.remove('hidden');
-
-            // Hide the error after a few seconds
-            errorTimer = setTimeout(() => {
-                errorElement.textContent = '';
-                errorElement.classList.add('hidden');
-            }, ERROR_MSG_DURATION);
-        }
-
-        /**
-         * Decodes the MIPS instruction and updates the UI.
-         */
-        function decodeInstruction() {
-            const inputElement = document.getElementById('instructionInput');
-            const binaryInstruction = normalizeInput(inputElement.value);
-            const errorElement = document.getElementById('errorMsg');
-            errorElement.textContent = ''; // Clear previous error
-
-            // Clear previous results
-            document.getElementById('assemblyOutput').textContent = '';
-            document.getElementById('breakdownBody').innerHTML = '';
-            document.getElementById('visualBreakdown').innerHTML = '';
-            hideInfo(); // Hide info tooltip if active
-
-            if (!binaryInstruction) {
-                displayError("Invalid input. Please enter a 32-bit Hex (8 digits) or Binary (32 bits) instruction.");
-                return;
-            }
-
-            // 1. Initial Breakdown
-            const Op = binaryInstruction.substring(0, 6);
-            const OpDec = parseInt(Op, 2);
-            const instructionTypeInfo = INSTRUCTION_MAP[Op];
-
-            if (!instructionTypeInfo) {
-                displayError(`Unknown Opcode: ${Op} (Dec: ${OpDec}). Cannot decode instruction.`);
-                return;
-            }
-
-            const instructionType = instructionTypeInfo.type;
-            currentInstructionType = instructionType; // Set global state
-            let mnemonic = 'UNKNOWN';
-            let assemblyFormat = 'N/A';
-            let breakdownFields = [];
-
-            // 2. Determine Instruction Format and Fields
-            if (instructionType === 'R') {
-                // R-Type: Op(6) | Rs(5) | Rt(5) | Rd(5) | Shamt(5) | Funct(6)
-                const Funct = binaryInstruction.substring(26, 32);
-                const Rs = binaryInstruction.substring(6, 11);
-                const Rt = binaryInstruction.substring(11, 16);
-                const Rd = binaryInstruction.substring(16, 21);
-                const Shamt = binaryInstruction.substring(21, 26);
-
-                const functInfo = instructionTypeInfo.funct[Funct];
-                
-                if (!functInfo) {
-                    displayError(`Unknown R-Type Function Code: ${Funct}. Opcode 0x00.`);
-                    return;
-                }
-
-                mnemonic = functInfo.mnemonic;
-                assemblyFormat = functInfo.format;
-
-                breakdownFields = [
-                    { name: 'Opcode', key: 'Opcode', bits: '31:26', bin: Op, dec: OpDec, meaning: 'R-Type (0x00)' },
-                    { name: 'Rs (Source 1)', key: 'Rs', bits: '25:21', bin: Rs, dec: parseInt(Rs, 2), meaning: REGISTER_NAMES[parseInt(Rs, 2)] },
-                    { name: 'Rt (Source 2)', key: 'Rt', bits: '20:16', bin: Rt, dec: parseInt(Rt, 2), meaning: REGISTER_NAMES[parseInt(Rt, 2)] },
-                    { name: 'Rd (Destination)', key: 'Rd', bits: '15:11', bin: Rd, dec: parseInt(Rd, 2), meaning: REGISTER_NAMES[parseInt(Rd, 2)] },
-                    { name: 'Shamt (Shift Amt)', key: 'Shamt', bits: '10:6', bin: Shamt, dec: parseInt(Shamt, 2), meaning: 'Shift Amount' },
-                    { name: 'Funct (Function)', key: 'Funct', bits: '5:0', bin: Funct, dec: parseInt(Funct, 2), meaning: mnemonic + ' operation' },
-                ];
-
-                // 3. Generate Assembly String for R-Type
-                let assembly = mnemonic;
-                const rsName = REGISTER_NAMES[parseInt(Rs, 2)];
-                const rtName = REGISTER_NAMES[parseInt(Rt, 2)];
-                const rdName = REGISTER_NAMES[parseInt(Rd, 2)];
-                const shamtDec = parseInt(Shamt, 2);
-
-                if (mnemonic === 'JR') {
-                    assembly += ` ${rsName}`;
-                } else if (['SLL', 'SRL', 'SRA'].includes(mnemonic)) {
-                    // SLL/SRL/SRA format: rd, rt, sa
-                    assembly += ` ${rdName}, ${rtName}, ${shamtDec}`;
-                } else { // ADD, ADDU, SUB, AND, OR, etc.
-                    // Standard R-type format: rd, rs, rt
-                    assembly += ` ${rdName}, ${rsName}, ${rtName}`;
-                }
-                document.getElementById('assemblyOutput').textContent = assembly;
-
-            } else if (instructionType === 'I') {
-                // I-Type: Op(6) | Rs(5) | Rt(5) | Immediate(16)
-                const Rs = binaryInstruction.substring(6, 11);
-                const Rt = binaryInstruction.substring(11, 16);
-                const ImmediateBin = binaryInstruction.substring(16, 32);
-
-                mnemonic = instructionTypeInfo.mnemonic;
-                assemblyFormat = instructionTypeInfo.format;
-
-                // Sign-extend the 16-bit immediate value
-                const ImmediateDec = signExtend(ImmediateBin);
-                const ImmediateHex = '0x' + parseInt(ImmediateBin, 2).toString(16).toUpperCase().padStart(4, '0');
-
-                breakdownFields = [
-                    { name: 'Opcode', key: 'Opcode', bits: '31:26', bin: Op, dec: OpDec, meaning: mnemonic },
-                    { name: 'Rs (Source)', key: 'Rs', bits: '25:21', bin: Rs, dec: parseInt(Rs, 2), meaning: REGISTER_NAMES[parseInt(Rs, 2)] },
-                    { name: 'Rt (Target/Dest)', key: 'Rt', bits: '20:16', bin: Rt, dec: parseInt(Rt, 2), meaning: REGISTER_NAMES[parseInt(Rt, 2)] },
-                    { name: 'Immediate', key: 'Immediate', bits: '15:0', bin: ImmediateBin, dec: ImmediateDec, meaning: `Constant or Address Offset (${ImmediateHex})` },
-                ];
-
-                // 3. Generate Assembly String for I-Type
-                let assembly = mnemonic;
-                const rsName = REGISTER_NAMES[parseInt(Rs, 2)];
-                const rtName = REGISTER_NAMES[parseInt(Rt, 2)];
-
-                if (mnemonic === 'LW' || mnemonic === 'SW') {
-                    // LW/SW rt, offset(rs)
-                    assembly += ` ${rtName}, ${ImmediateDec}(${rsName})`;
-                } else if (mnemonic === 'BEQ' || mnemonic === 'BNE') {
-                    // BEQ/BNE rs, rt, offset
-                    assembly += ` ${rsName}, ${rtName}, ${ImmediateDec}`;
-                } else if (mnemonic === 'LUI') {
-                    // LUI rt, imm
-                     assembly += ` ${rtName}, ${ImmediateDec}`;
-                }
-                else { // ADDI, ANDI, ORI, etc.
-                    // Standard I-type: rt, rs, imm
-                    assembly += ` ${rtName}, ${rsName}, ${ImmediateDec}`;
-                }
-                document.getElementById('assemblyOutput').textContent = assembly;
-
-            } else if (instructionType === 'J') {
-                // J-Type: Op(6) | Address(26)
-                const AddressBin = binaryInstruction.substring(6, 32);
-
-                mnemonic = instructionTypeInfo.mnemonic;
-                assemblyFormat = instructionTypeInfo.format;
-
-                // The 26-bit address is shifted left by 2 (multiplied by 4) and combined with PC high bits.
-                // For a simple decoder, we'll just show the shifted address.
-                const AddressDec = parseInt(AddressBin + '00', 2);
-                const AddressHex = '0x' + AddressDec.toString(16).toUpperCase().padStart(8, '0');
-
-                breakdownFields = [
-                    { name: 'Opcode', key: 'Opcode', bits: '31:26', bin: Op, dec: OpDec, meaning: mnemonic },
-                    { name: 'Address', key: 'Address', bits: '25:0', bin: AddressBin, dec: AddressDec, meaning: `Target Address (Shifted, ${AddressHex})` },
-                ];
-
-                // 3. Generate Assembly String for J-Type
-                let assembly = `${mnemonic} ${AddressHex}`;
-                document.getElementById('assemblyOutput').textContent = assembly;
-            }
-
-            // 4. Update Tables and Visuals
-            updateBreakdownTable(breakdownFields);
-            updateVisualBreakdown(binaryInstruction, instructionType);
-        }
-
-        /**
-         * Converts a 16-bit binary string to a 32-bit signed decimal number.
-         * @param {string} binaryString - 16-bit binary string.
-         * @returns {number} The signed decimal value.
-         */
-        function signExtend(binaryString) {
-            if (binaryString.length !== 16) {
-                return parseInt(binaryString, 2); // Should not happen for I-Type
-            }
-
-            const isNegative = binaryString[0] === '1';
-            let value = parseInt(binaryString, 2);
-
-            if (isNegative) {
-                // Perform two's complement manually for 16 bits
-                value = value - (1 << 16);
-            }
-            return value;
-        }
-
-
-        /**
-         * Updates the detailed breakdown table, including info buttons.
-         * @param {Array<Object>} fields - Array of field objects.
-         */
-        function updateBreakdownTable(fields) {
-            const tbody = document.getElementById('breakdownBody');
-            tbody.innerHTML = ''; // Clear existing rows
-
-            fields.forEach(field => {
-                const row = document.createElement('tr');
-                row.className = 'hover:bg-gray-700 transition duration-150';
-                row.innerHTML = `
-                    <td class="px-3 py-2 whitespace-nowrap font-medium text-indigo-300 flex items-center">
-                        ${field.name} (${field.bin.length} bits)
-                        <span onclick="showInfo(event, '${field.key}')" class="ml-2 text-indigo-400 cursor-pointer hover:text-indigo-300 transition" title="Information">
-                            <i class="ph-fill ph-info-i text-base"></i>
-                        </span>
-                    </td>
-                    <td class="px-3 py-2 whitespace-nowrap text-gray-400">${field.bits}</td>
-                    <td class="px-3 py-2 whitespace-nowrap text-yellow-300 font-mono">${field.bin}</td>
-                    <td class="px-3 py-2 whitespace-nowrap text-gray-300 font-mono">${field.dec}</td>
-                    <td class="px-3 py-2 whitespace-nowrap text-gray-400">${field.meaning}</td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
-
-        /**
-         * Updates the visual 32-bit breakdown with color coding.
-         * @param {string} binaryInstruction - The 32-bit binary string.
-         * @param {string} type - Instruction type (R, I, or J).
-         */
-        function updateVisualBreakdown(binaryInstruction, type) {
-            const visualDiv = document.getElementById('visualBreakdown');
-            visualDiv.innerHTML = '';
-            
-            const fieldClasses = {
-                Op: "text-red-400 font-bold",
-                Rs: "text-green-400 font-bold",
-                Rt: "text-blue-400 font-bold",
-                Rd: "text-purple-400 font-bold",
-                Shamt: "text-pink-400 font-bold",
-                Funct: "text-yellow-400 font-bold",
-                Immediate: "text-cyan-400 font-bold",
-                Address: "text-lime-400 font-bold"
-            };
-
-            const bits = binaryInstruction.split('');
-            let spans = [];
-            let start = 0;
-            let currentField = '';
-            let end = 0;
-
-            if (type === 'R') {
-                // R-Type: Op(6) | Rs(5) | Rt(5) | Rd(5) | Shamt(5) | Funct(6)
-                const structure = [
-                    { name: 'Op', length: 6 }, { name: 'Rs', length: 5 }, { name: 'Rt', length: 5 },
-                    { name: 'Rd', length: 5 }, { name: 'Shamt', length: 5 }, { name: 'Funct', length: 6 }
-                ];
-                structure.forEach(field => {
-                    end = start + field.length;
-                    const segment = bits.slice(start, end).join('');
-                    spans.push(`<span class="${fieldClasses[field.name]}">${segment}</span>`);
-                    start = end;
-                });
-            } else if (type === 'I') {
-                // I-Type: Op(6) | Rs(5) | Rt(5) | Immediate(16)
-                const structure = [
-                    { name: 'Op', length: 6 }, { name: 'Rs', length: 5 }, { name: 'Rt', length: 5 },
-                    { name: 'Immediate', length: 16 }
-                ];
-                structure.forEach(field => {
-                    end = start + field.length;
-                    const segment = bits.slice(start, end).join('');
-                    spans.push(`<span class="${fieldClasses[field.name]}">${segment}</span>`);
-                    start = end;
-                });
-            } else if (type === 'J') {
-                // J-Type: Op(6) | Address(26)
-                const structure = [
-                    { name: 'Op', length: 6 }, { name: 'Address', length: 26 }
-                ];
-                structure.forEach(field => {
-                    end = start + field.length;
-                    const segment = bits.slice(start, end).join('');
-                    spans.push(`<span class="${fieldClasses[field.name]}">${segment}</span>`);
-                    start = end;
-                });
-            }
-
-            // Display the bits and the field legend
-            visualDiv.innerHTML = `
-                <div class="text-lg tracking-widest leading-loose bg-gray-900 p-4 rounded-lg shadow-inner">
-                    ${spans.join('<span class="text-gray-600">|</span>')}
-                </div>
-                <div class="mt-4 text-xs flex flex-wrap gap-x-4 gap-y-2">
-                    <span class="${fieldClasses.Op} mr-2">OPCODE</span>
-                    <span class="${fieldClasses.Rs} mr-2">RS (Source)</span>
-                    <span class="${fieldClasses.Rt} mr-2">RT (Target/Source)</span>
-                    ${type === 'R' ? `<span class="${fieldClasses.Rd} mr-2">RD (Destination)</span>` : ''}
-                    ${type === 'R' ? `<span class="${fieldClasses.Shamt} mr-2">SHAMT</span>` : ''}
-                    ${type === 'R' ? `<span class="${fieldClasses.Funct} mr-2">FUNCT</span>` : ''}
-                    ${type === 'I' ? `<span class="${fieldClasses.Immediate} mr-2">IMMEDIATE (16-bit)</span>` : ''}
-                    ${type === 'J' ? `<span class="${fieldClasses.Address} mr-2">TARGET ADDRESS (26-bit)</span>` : ''}
-                </div>
-            `;
-        }
-
-        /**
-         * Displays the info tooltip.
-         * @param {Event} event - The click event.
-         * @param {string} fieldKey - The key for the field description.
-         */
-        function showInfo(event, fieldKey) {
-            const tooltip = document.getElementById('infoTooltip');
-            const description = FIELD_DESCRIPTIONS[fieldKey] || `No detailed description available for ${fieldKey}.`;
-
-            // Update tooltip content
-            tooltip.innerHTML = `<p class="font-bold text-indigo-300 mb-2">${fieldKey} Field (${currentInstructionType}-Type)</p><p>${description}</p>`;
-            tooltip.classList.remove('hidden');
-
-            // Positioning the tooltip
-            const buttonRect = event.currentTarget.getBoundingClientRect();
-            const bodyRect = document.body.getBoundingClientRect();
-
-            // Set a temporary max-width to calculate dynamic size
-            tooltip.style.maxWidth = '300px'; 
-            
-            // Calculate position
-            let topPos = buttonRect.top + window.scrollY;
-            let leftPos = buttonRect.right + 10;
-            
-            // Adjust left if it goes off the right edge
-            if (buttonRect.right + tooltip.offsetWidth + 10 > bodyRect.right) {
-                leftPos = buttonRect.left - tooltip.offsetWidth - 10;
-            }
-            
-            // Ensure we don't go off the top of the screen
-            if (topPos < window.scrollY) {
-                topPos = window.scrollY + 10;
-            }
-
-            tooltip.style.left = `${leftPos}px`;
-            tooltip.style.top = `${topPos}px`;
-            
-            // Add global listener to hide on next click outside the tooltip
-            // Note: We need to remove the previous listener if it exists before adding a new one.
-            document.removeEventListener('click', hideInfo);
-            setTimeout(() => {
-                 document.addEventListener('click', hideInfo, { once: true });
-            }, 10);
-            
-            // Stop propagation to prevent the click from immediately triggering the hideInfo listener added to the document
-            event.stopPropagation(); 
-        }
-
-        /**
-         * Hides the info tooltip.
-         */
-        function hideInfo() {
-            document.getElementById('infoTooltip').classList.add('hidden');
-        }
-
-        // Example instruction for initial load (ADDU $t0, $s1, $s2 -> 0x02324021)
-        window.onload = function() {
-            document.getElementById('instructionInput').value = '0x02324021'; 
-            decodeInstruction();
+        window.onload = () => {
+            app.renderView('home');
         };
 
     </script>
 </body>
 </html>
+
